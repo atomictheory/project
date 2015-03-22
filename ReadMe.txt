@@ -1,0 +1,1 @@
+this is an experimental project to write an atomic engine that compiles under cygwin ( mingw )
