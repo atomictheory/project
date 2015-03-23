@@ -15,16 +15,14 @@ namespace PositionSpace
 
 	int material_values[NUM_PIECES];
 	
-	int RANDOM_BONUS;
-	
 	void init_material_values()
 	{
 		material_values[KING]=0;
-		material_values[PAWN]=120;
-		material_values[KNIGHT]=300;
-		material_values[BISHOP]=300;
-		material_values[ROOK]=500;
-		material_values[QUEEN]=900;
+		material_values[PAWN]=PAWN_VALUE;
+		material_values[KNIGHT]=KNIGHT_VALUE;
+		material_values[BISHOP]=BISHOP_VALUE;
+		material_values[ROOK]=ROOK_VALUE;
+		material_values[QUEEN]=QUEEN_VALUE;
 	}
 
 	int move_table_init_current_ptr;
@@ -278,8 +276,6 @@ namespace PositionSpace
 	{
 		init_move_table();
 		init_material_values();
-		
-		RANDOM_BONUS=5;
 	}
 	
 	void Position::make_move(Move m)

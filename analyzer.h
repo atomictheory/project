@@ -1,6 +1,8 @@
 #ifndef ANALYZER_H
 #define ANALYZER_H
 
+#include "setup.h"
+
 #include "position.h"
 
 #include "utils/include/pthread.h"
@@ -77,7 +79,6 @@ namespace AnalyzerSpace
 		int no_moves;
 	};
 	
-	const int DEEP_POSITION_BUFFER_SIZE=(50000);
 	const int DEEP_MOVE_BUFFER_SIZE=(DEEP_POSITION_BUFFER_SIZE*AVERAGE_NUMBER_OF_LEGAL_MOVES_PER_POSITION);
 	const int DEEP_MAX_MOVE_BUFFER_PTR=(DEEP_MOVE_BUFFER_SIZE-MAXIMUM_NUMBER_OF_LEGAL_MOVES_PER_POSITION);
 	
@@ -90,10 +91,9 @@ namespace AnalyzerSpace
 		Score score;
 	};
 	
-	const int NUM_THREADS=(4);
 	const int NUM_ANALYZERS=(NUM_THREADS+2);
 	
-	extern KickHash <PositionTrunk,EvalMove,16> move_hashes[NUM_ANALYZERS];
+	extern KickHash <PositionTrunk,EvalMove,MOVE_HASH_SHIFT> move_hashes[NUM_ANALYZERS];
 	
 	const Depth MINIMAX_DEPTH=(25);
 	const Depth REP_DEPTH=(MINIMAX_DEPTH+10);
@@ -106,7 +106,7 @@ namespace AnalyzerSpace
 	
 		public:
 		
-		KickHash <PositionTrunk,EvalMove,16>* move_hash;
+		KickHash <PositionTrunk,EvalMove,MOVE_HASH_SHIFT>* move_hash;
 		
 		Position search_position;
 		Position alphabeta_position;

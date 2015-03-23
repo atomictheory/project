@@ -13,10 +13,14 @@ using namespace std;
 #include "position.h"
 #include "analyzer.h"
 
-#define WINBOARD
+#include "setup.h"
 
 PositionSpace::Position game[200];
 int game_ptr;
+
+AnalyzerSpace::Analyzer* alphabeta_analyzer;
+
+PositionSpace::Position p;
 
 void stdin_dequeue_callback_func(UnbufstdioSpace::Item item)
 {
@@ -33,10 +37,13 @@ void stdin_dequeue_callback_func(UnbufstdioSpace::Item item)
 
 void init_main()
 {
+
 	PositionSpace::init();
 	AnalyzerSpace::init();
+	
 	#ifdef WINBOARD
 	UnbufstdioSpace::init();
+	UnbufstdioSpace::stdin_dequeue_callback=stdin_dequeue_callback_func;
 	#endif
 	
 	ofstream o("log.txt",ios::binary);
@@ -45,23 +52,22 @@ void init_main()
 		o.close();
 	}
 	
-	UnbufstdioSpace::stdin_dequeue_callback=stdin_dequeue_callback_func;
-	
 	game_ptr=-1;
+	
+	alphabeta_analyzer=&AnalyzerSpace::analyzers[AnalyzerSpace::ALPHABETA_ANALYZER];
+	
 }
 
 #ifdef WINBOARD
 
-PositionSpace::Position p;
-
 void make_move()
 {	
-	AnalyzerSpace::analyzers[AnalyzerSpace::ALPHABETA_ANALYZER].search_position=p;
-	AnalyzerSpace::analyzers[AnalyzerSpace::ALPHABETA_ANALYZER].search_depth=5;
-	AnalyzerSpace::analyzers[AnalyzerSpace::ALPHABETA_ANALYZER].search_grad_call();
+	alphabeta_analyzer->search_position=p;
+	alphabeta_analyzer->search_depth=7;
+	alphabeta_analyzer->search_grad_call();
 	game[++game_ptr]=p;
-	p.make_move(AnalyzerSpace::analyzers[AnalyzerSpace::ALPHABETA_ANALYZER].best_move);
-	printf("move %s\n",AnalyzerSpace::analyzers[AnalyzerSpace::ALPHABETA_ANALYZER].best_move.algeb());
+	p.make_move(alphabeta_analyzer->best_move);
+	printf("move %s\n",alphabeta_analyzer->best_move.algeb());
 }
 
 int main(int argc,char** argv)
@@ -78,7 +84,7 @@ int main(int argc,char** argv)
 	do
 	{
 	
-		Sleep(200);
+		Sleep(50);
 	
 		if(UnbufstdioSpace::stdin_pending())
 		{
@@ -91,6 +97,13 @@ int main(int argc,char** argv)
 			if(0==strcmp(token,"quit"))
 			{
 				quit=true;
+				continue;
+			}
+			
+			if(0==strcmp(token,"new"))
+			{
+				p.reset();
+				game_ptr=-1;
 				continue;
 			}
 			
@@ -120,12 +133,6 @@ int main(int argc,char** argv)
 		
 		}
 		
-		/*if(0==strcmp(token,"ping"))
-		{
-			token=item.get_token();
-			printf("pong %s\n",token);
-		}*/
-		
 	}while(!quit);
 	
 }
@@ -139,10 +146,6 @@ int main(int argc,char** argv)
 	
 	char buf[200];
 	string message="";
-	
-	Sleep(200);
-	
-	PositionSpace::Position p;
 	
 	p.reset();
 	
@@ -164,7 +167,7 @@ int main(int argc,char** argv)
 			if(list_move_values)
 			{
 				cout << endl;
-				AnalyzerSpace::analyzers[AnalyzerSpace::ALPHABETA_ANALYZER].list_move_values(p);
+				alphabeta_analyzer->list_move_values(p);
 				list_move_values=false;
 			}
 			
@@ -217,9 +220,9 @@ int main(int argc,char** argv)
 			continue;
 		}
 		
-		if(0==strcmp(buf,"qal"))
+		if(0==strcmp(buf,"q"))
 		{
-			AnalyzerSpace::analyzers[AnalyzerSpace::ALPHABETA_ANALYZER].quit_search_safe();
+			alphabeta_analyzer->quit_search_safe();
 			message="alphabeta search quitted";
 			continue;
 		}
@@ -239,32 +242,32 @@ int main(int argc,char** argv)
 		
 		if(buf[0]=='v')
 		{
-			AnalyzerSpace::analyzers[AnalyzerSpace::ALPHABETA_ANALYZER].search_move_values_safe(p);
+			alphabeta_analyzer->search_move_values_safe(p);
 			list_move_values=true;
 		}
 		
 		if(buf[0]=='n')
 		{
 			AnalyzerSpace::minimax_smart=true;
-			AnalyzerSpace::analyzers[AnalyzerSpace::ALPHABETA_ANALYZER].minimax_out(p);
+			alphabeta_analyzer->minimax_out(p);
 			AnalyzerSpace::minimax_smart=false;
 		}
 		
 		if(buf[0]=='k')
 		{
-			AnalyzerSpace::analyzers[AnalyzerSpace::ALPHABETA_ANALYZER].add_node(p);
+			alphabeta_analyzer->add_node(p);
 		}
 		
 		if(buf[0]=='s')
 		{
 			print_prompt=false;
-			AnalyzerSpace::analyzers[AnalyzerSpace::ALPHABETA_ANALYZER].search_grad(p,(buf[1]-'0'));
+			alphabeta_analyzer->search_grad(p,(buf[1]-'0'));
 		}
 		
 		if(buf[0]=='i')
 		{
 			print_prompt=false;
-			AnalyzerSpace::analyzers[AnalyzerSpace::ALPHABETA_ANALYZER].search_grad(p,20);
+			alphabeta_analyzer->search_grad(p,20);
 		}
 	
 		if(buf[0]=='m')

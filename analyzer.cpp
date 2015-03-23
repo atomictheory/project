@@ -26,12 +26,12 @@ namespace AnalyzerSpace
 	int DEPTH_BONUS=25;
 	int DEEP_SEARCH_DEPTH=MINIMAX_DEPTH;
 
-	MyHash<PositionTrunk,DeepHashValue,16,DEEP_POSITION_BUFFER_SIZE> position_hash;
+	MyHash<PositionTrunk,DeepHashValue,DEEP_HASH_SHIFT,DEEP_POSITION_BUFFER_SIZE> position_hash;
 	DeepHashMove move_buffer[DEEP_MOVE_BUFFER_SIZE];
 
 	MyHashPtr move_alloc_ptr;
 	
-	KickHash <PositionTrunk,EvalMove,16> move_hashes[NUM_ANALYZERS];
+	KickHash <PositionTrunk,EvalMove,MOVE_HASH_SHIFT> move_hashes[NUM_ANALYZERS];
 	
 	Analyzer analyzers[NUM_ANALYZERS];
 	
@@ -48,10 +48,12 @@ namespace AnalyzerSpace
 			analyzers[i].num_analyzer=i;
 			analyzers[i].move_hash=&move_hashes[i];
 			
+			#ifndef WINBOARD
 			if(i<NUM_THREADS)
 			{
 				analyzers[i].start_analyzer();
 			}
+			#endif
 		}
 		
 	}
@@ -889,11 +891,19 @@ namespace AnalyzerSpace
 		
 		if(search_grad_verbose)
 		{
-			//printf("%2d  %-5s %4d  time %4d  nodes %9d  nps  %4.1f",(int)alphabeta_depth,best_move.algeb(),score,elapsed,nodes,nps);
+		
+			#ifdef WINBOARD
 			
 			printf("%d %d %d %d %s\n",(int)alphabeta_depth,(int)score,(int)elapsed,(int)nodes,best_move.algeb());
 			
-			//cout << endl;
+			#else
+			
+			printf("%2d  %-5s %4d  time %4d  nodes %9d  nps  %4.1f",(int)alphabeta_depth,best_move.algeb(),score,elapsed,nodes,nps);
+			
+			cout << endl;
+			
+			#endif
+				
 		}
 		
 		return score;

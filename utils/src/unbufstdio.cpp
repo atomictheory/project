@@ -22,9 +22,8 @@ namespace UnbufstdioSpace
 	
 		while(true)
 		{
+		
 			Item item;
-			
-			Sleep(200);
 			
 			cin.getline(item.buffer,(ITEM_BUFFER_SIZE-1));
 			item.ptr=0;
@@ -32,6 +31,8 @@ namespace UnbufstdioSpace
 			stdin_queue.enqueue(&item);
 			
 			stdin_dequeue_callback(item);
+			
+			Sleep(50);
 
 		}
 		

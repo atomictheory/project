@@ -7,6 +7,17 @@ namespace PositionSpace
 {
 
 	//#define DEBUG_MOVE_TABLE
+	
+	const int MOBILITY_BONUS=(20);
+	const int ATTACKER_BONUS=(25);
+	const int RANDOM_BONUS=(25);
+	
+	const int PAWN_VALUE=(125);
+	const int KNIGHT_VALUE=(300);
+	const int BISHOP_VALUE=(300);
+	const int ROOK_VALUE=(500);
+	const int QUEEN_VALUE=(850);
+	const int KING_VALUE=(0);
 
 	///////////////////////////////////////////////////
 	// basic definitions to set up the board
@@ -183,10 +194,6 @@ namespace PositionSpace
 	#define OPPOSITE_COLOR(COLOR) (1-COLOR)
 	#define OPPOSITE_TURN(TURN) OPPOSITE_COLOR(TURN)
 	#define PIECE_COLOR_OF_COLOR(COLOR) (COLOR==WHITE?WHITE_PIECE:BLACK_PIECE)
-	
-	const int MOBILITY_BONUS=(10);
-	const int ATTACKER_BONUS=(15);
-	extern int RANDOM_BONUS;
 	
 	#define DEBUG_ATTACKERS
 	
