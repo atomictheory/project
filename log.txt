@@ -1,0 +1,3 @@
+usermove e2e4
+go
+quit

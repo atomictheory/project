@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 #include <sstream>
 #include <stdio.h>
 
@@ -7,27 +8,137 @@
 using namespace std;
 
 #include "utils/include/myhash.h"
+#include "utils/include/unbufstdio.h"
 
 #include "position.h"
 #include "analyzer.h"
 
+#define WINBOARD
+
 PositionSpace::Position game[200];
 int game_ptr;
+
+void stdin_dequeue_callback_func(UnbufstdioSpace::Item item)
+{
+
+	ofstream o("log.txt",ios::binary|ios::app);
+	if(o.is_open())
+	{
+		o.write((char*)&item.buffer,strlen(item.buffer));
+		o.write((char*)"\r\n",2);
+		o.close();
+	}
+	
+}
 
 void init_main()
 {
 	PositionSpace::init();
 	AnalyzerSpace::init();
+	#ifdef WINBOARD
+	UnbufstdioSpace::init();
+	#endif
+	
+	ofstream o("log.txt",ios::binary);
+	if(o.is_open())
+	{
+		o.close();
+	}
+	
+	UnbufstdioSpace::stdin_dequeue_callback=stdin_dequeue_callback_func;
+	
 	game_ptr=-1;
 }
 
-char buf[200];
-string message="";
+#ifdef WINBOARD
+
+PositionSpace::Position p;
+
+void make_move()
+{	
+	AnalyzerSpace::analyzers[AnalyzerSpace::ALPHABETA_ANALYZER].search_position=p;
+	AnalyzerSpace::analyzers[AnalyzerSpace::ALPHABETA_ANALYZER].search_depth=5;
+	AnalyzerSpace::analyzers[AnalyzerSpace::ALPHABETA_ANALYZER].search_grad_call();
+	game[++game_ptr]=p;
+	p.make_move(AnalyzerSpace::analyzers[AnalyzerSpace::ALPHABETA_ANALYZER].best_move);
+	printf("move %s\n",AnalyzerSpace::analyzers[AnalyzerSpace::ALPHABETA_ANALYZER].best_move.algeb());
+}
 
 int main(int argc,char** argv)
 {
 
 	init_main();
+	
+	bool quit=false;
+	
+	UnbufstdioSpace::Item item;
+	
+	p.reset();
+	
+	do
+	{
+	
+		Sleep(200);
+	
+		if(UnbufstdioSpace::stdin_pending())
+		{
+		
+			UnbufstdioSpace::stdin_dequeue(&item);
+		
+			char* token;
+			token=item.get_token();
+			
+			if(0==strcmp(token,"quit"))
+			{
+				quit=true;
+				continue;
+			}
+			
+			if(0==strcmp(token,"usermove"))
+			{
+				token=item.get_token();
+				if(p.is_algeb_move_legal(token))
+				{
+					game[++game_ptr]=p;
+					p.make_move(p.try_move);
+					make_move();
+				}
+				continue;
+			}
+			
+			if(0==strcmp(token,"go"))
+			{
+				make_move();
+				continue;
+			}
+			
+			if(0==strcmp(token,"protover"))
+			{
+				printf("feature usermove=1\n");
+				continue;
+			}
+		
+		}
+		
+		/*if(0==strcmp(token,"ping"))
+		{
+			token=item.get_token();
+			printf("pong %s\n",token);
+		}*/
+		
+	}while(!quit);
+	
+}
+
+#else
+
+int main(int argc,char** argv)
+{
+
+	init_main();
+	
+	char buf[200];
+	string message="";
 	
 	Sleep(200);
 	
@@ -231,3 +342,5 @@ int main(int argc,char** argv)
 	return 0;
 
 }
+
+#endif

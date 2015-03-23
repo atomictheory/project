@@ -4,6 +4,7 @@
 #include <string.h>
 
 #include "xxhash.h"
+#include "pthread.h"
 
 #define NULL_PTR 0
 

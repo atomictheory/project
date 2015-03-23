@@ -117,7 +117,7 @@ namespace AnalyzerSpace
 		Analyzer* me=(Analyzer*)void_ptr;
 		
 		pthread_mutex_lock(&display_mutex);
-		cout << "analyzer " << me->num_analyzer << " started" << endl;
+		//cout << "analyzer " << me->num_analyzer << " started" << endl;
 		pthread_mutex_unlock(&display_mutex);
 		
 		while(true)
@@ -799,7 +799,7 @@ namespace AnalyzerSpace
 		
 		if(search_grad_verbose)
 		{
-			cout << "search depth " << (int)search_depth << endl << endl;
+			//cout << "search to depth " << (int)search_depth << endl;
 		}
 		
 		for(int grad_depth=1;grad_depth<=search_depth;grad_depth++)
@@ -819,7 +819,7 @@ namespace AnalyzerSpace
 		
 		if(search_grad_verbose)
 		{
-			cout << endl;
+			//cout << endl;
 		}
 		
 		search_going=false;
@@ -889,9 +889,11 @@ namespace AnalyzerSpace
 		
 		if(search_grad_verbose)
 		{
-			printf("%2d  %-5s %4d  time %4d  nodes %9d  nps  %4.1f",(int)alphabeta_depth,best_move.algeb(),score,elapsed,nodes,nps);
+			//printf("%2d  %-5s %4d  time %4d  nodes %9d  nps  %4.1f",(int)alphabeta_depth,best_move.algeb(),score,elapsed,nodes,nps);
 			
-			cout << endl;
+			printf("%d %d %d %d %s\n",(int)alphabeta_depth,(int)score,(int)elapsed,(int)nodes,best_move.algeb());
+			
+			//cout << endl;
 		}
 		
 		return score;

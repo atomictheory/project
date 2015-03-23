@@ -950,6 +950,7 @@ namespace PositionSpace
 				{
 					if(try_move.type & CASTLING_KING_SIDE_MOVE)
 					{
+						if(!(castling_rights & CASTLING_RIGHT_K)){continue;}
 						if(is_in_check_square(60,WHITE)){continue;}
 						if(is_in_check_square(61,WHITE)){continue;}
 						if(board[61]){continue;}
@@ -958,6 +959,7 @@ namespace PositionSpace
 					
 					if(try_move.type & CASTLING_QUEEN_SIDE_MOVE)
 					{
+						if(!(castling_rights & CASTLING_RIGHT_Q)){continue;}
 						if(is_in_check_square(60,WHITE)){continue;}
 						if(is_in_check_square(59,WHITE)){continue;}
 						if(board[59]){continue;}
@@ -970,6 +972,7 @@ namespace PositionSpace
 				{
 					if(try_move.type & CASTLING_KING_SIDE_MOVE)
 					{
+						if(!(castling_rights & CASTLING_RIGHT_k)){continue;}
 						if(is_in_check_square(4,BLACK)){continue;}
 						if(is_in_check_square(5,BLACK)){continue;}
 						if(board[5]){continue;}
@@ -978,6 +981,7 @@ namespace PositionSpace
 					
 					if(try_move.type & CASTLING_QUEEN_SIDE_MOVE)
 					{
+						if(!(castling_rights & CASTLING_RIGHT_q)){continue;}
 						if(is_in_check_square(4,BLACK)){continue;}
 						if(is_in_check_square(3,BLACK)){continue;}
 						if(board[3]){continue;}
