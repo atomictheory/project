@@ -66,12 +66,30 @@ void init_main()
 
 void make_move()
 {	
-	alphabeta_analyzer->search_position=p;
-	alphabeta_analyzer->search_depth=7;
-	alphabeta_analyzer->search_grad_call();
+	anno_verbose=false;
+	list_annotated_moves(&p);
+	
+	Move best_move;
+	
+	if(is_recommended_move)
+	{
+		best_move=recommended_move;
+	}
+	else
+	{
+		alphabeta_analyzer->search_position=p;
+		alphabeta_analyzer->search_depth=6;
+		alphabeta_analyzer->search_grad_call();
+		
+		best_move=alphabeta_analyzer->best_move;
+	}
+	
 	game[++game_ptr]=p;
-	p.make_move(alphabeta_analyzer->best_move);
-	printf("move %s\n",alphabeta_analyzer->best_move.algeb());
+	
+	p.make_move(best_move);
+	
+	printf("move %s\n",best_move.algeb());
+	
 }
 
 int main(int argc,char** argv)
@@ -84,6 +102,8 @@ int main(int argc,char** argv)
 	UnbufstdioSpace::Item item;
 	
 	p.reset();
+	
+	bool computer=false;
 	
 	do
 	{
@@ -111,6 +131,12 @@ int main(int argc,char** argv)
 				continue;
 			}
 			
+			if(0==strcmp(token,"computer"))
+			{
+				computer=true;
+				continue;
+			}
+			
 			if(0==strcmp(token,"usermove"))
 			{
 				token=item.get_token();
@@ -125,13 +151,17 @@ int main(int argc,char** argv)
 			
 			if(0==strcmp(token,"go"))
 			{
-				make_move();
+				if(!computer)
+				{
+					make_move();
+				}
 				continue;
 			}
 			
 			if(0==strcmp(token,"protover"))
 			{
 				printf("feature usermove=1\n");
+				printf("feature done=1\n");
 				continue;
 			}
 		
@@ -175,8 +205,9 @@ int main(int argc,char** argv)
 				list_move_values=false;
 			}
 			
-			cout << endl << " annotation:" << endl;
+			anno_verbose=true;
 			list_annotated_moves(&p);
+			anno_verbose=false;
 			
 			cout << endl << message << " [ pos " << AnalyzerSpace::num_deep_positions() << " ] > ";
 			

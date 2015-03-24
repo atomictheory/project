@@ -21,6 +21,10 @@
 
 using namespace PositionSpace;
 
+extern bool anno_verbose;
+extern bool is_recommended_move;
+extern Move recommended_move;
+
 typedef unsigned int AnnoHashKey;
 
 typedef int AnnoPtr;
@@ -38,6 +42,8 @@ struct AnnoEntry
 	char annot[20];
 
 	AnnoPtr next;
+	
+	Move m;
 
 	void init(Position*,char*);
 

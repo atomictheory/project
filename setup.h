@@ -1,7 +1,7 @@
 #ifndef SETUP_H
 #define SETUP_H
 
-//#define WINBOARD
+#define WINBOARD
 
 const int MOVE_HASH_SHIFT=(18);
 

@@ -4,8 +4,13 @@
 
 #include <iostream>
 #include <fstream>
+#include <stdlib.h>
 
 using namespace std;
+
+bool anno_verbose=false;
+bool is_recommended_move;
+Move recommended_move;
 
 int anno_alloc_ptr=1;
 
@@ -190,6 +195,25 @@ char* annot_nice(char* annot)
 	return annot_nice_puff;
 }
 
+int annot_value(char* annot)
+{
+	if(0==strcmp(annot,"!!")){return 3;}
+	if(0==strcmp(annot,"!")){return 2;}
+	if(0==strcmp(annot,"!?")){return 1;}
+	if(0==strcmp(annot,"-")){return 0;}
+	if(0==strcmp(annot,"?!")){return -1;}
+	if(0==strcmp(annot,"?")){return -2;}
+	if(0==strcmp(annot,"??")){return -3;}
+}
+
+int cmp_moves(const void* a,const void* b)
+{
+	char* aa=((AnnoEntry*)a)->annot;
+	char* ab=((AnnoEntry*)b)->annot;
+	
+	return annot_value(ab)-annot_value(aa);
+}
+
 void list_annotated_moves(Position* p)
 {
 
@@ -204,6 +228,9 @@ void list_annotated_moves(Position* p)
 	Position dummy=*p;
 
 	dummy.init_move_generator();
+	
+	AnnoEntry annotated_moves[50];
+	int anno_entry_count=0;
 
 	while(dummy.next_legal_move())
 	{
@@ -212,12 +239,52 @@ void list_annotated_moves(Position* p)
 
 		if(entry!=NULL)
 		{
-			cout << " * " << entry->id.algeb << " " << entry->annot << " ( " << annot_nice(entry->annot) << " ) " << endl;
+			annotated_moves[anno_entry_count]=*entry;
+			
+			annotated_moves[anno_entry_count].m=dummy.try_move;
+			
+			anno_entry_count++;
 		}
 
 	}
-
-	cout << endl;
+	
+	is_recommended_move=false;
+	
+	if(anno_entry_count>0)
+	{
+	
+		qsort(&annotated_moves,anno_entry_count,sizeof(AnnoEntry),cmp_moves);
+		
+		if(annot_value(annotated_moves[0].annot)>-2)
+		{
+			is_recommended_move=true;
+			recommended_move=annotated_moves[0].m;
+		}
+		
+		if(anno_verbose)
+		{
+		
+			for(int i=0;i<anno_entry_count;i++)
+			{
+				if(i==0){cout << endl;}
+			
+				cout << " * ( " << (i+1) << " ) " 
+				<< annotated_moves[i].id.algeb << " " 
+				<< annotated_moves[i].annot 
+				<< " ( " 
+				<< annot_nice(annotated_moves[i].annot) 
+				<< " ) " << endl;
+			}
+			
+		}
+		
+		if((is_recommended_move)&&(anno_verbose))
+		{
+			cout << endl << " recommended move: "
+			<< recommended_move.algeb() << endl;
+		}
+	
+	}
 
 }
 

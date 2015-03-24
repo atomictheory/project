@@ -1,0 +1,4 @@
+usermove g1f3
+usermove e2e3
+usermove a2a4
+quit
