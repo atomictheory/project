@@ -8,15 +8,15 @@ namespace PositionSpace
 
 	//#define DEBUG_MOVE_TABLE
 	
-	const int MOBILITY_BONUS=(20);
-	const int ATTACKER_BONUS=(25);
-	const int RANDOM_BONUS=(25);
+	const int MOBILITY_BONUS=(5);
+	const int ATTACKER_BONUS=(10);
+	const int RANDOM_BONUS=(5);
 	
-	const int PAWN_VALUE=(125);
+	const int PAWN_VALUE=(100);
 	const int KNIGHT_VALUE=(300);
 	const int BISHOP_VALUE=(300);
 	const int ROOK_VALUE=(500);
-	const int QUEEN_VALUE=(850);
+	const int QUEEN_VALUE=(900);
 	const int KING_VALUE=(0);
 
 	///////////////////////////////////////////////////

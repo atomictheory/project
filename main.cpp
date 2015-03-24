@@ -13,6 +13,8 @@ using namespace std;
 #include "position.h"
 #include "analyzer.h"
 
+#include "anno.h"
+
 #include "setup.h"
 
 PositionSpace::Position game[200];
@@ -45,6 +47,8 @@ void init_main()
 	UnbufstdioSpace::init();
 	UnbufstdioSpace::stdin_dequeue_callback=stdin_dequeue_callback_func;
 	#endif
+	
+	set_anno_default();
 	
 	ofstream o("log.txt",ios::binary);
 	if(o.is_open())
@@ -170,6 +174,9 @@ int main(int argc,char** argv)
 				alphabeta_analyzer->list_move_values(p);
 				list_move_values=false;
 			}
+			
+			cout << endl << " annotation:" << endl;
+			list_annotated_moves(&p);
 			
 			cout << endl << message << " [ pos " << AnalyzerSpace::num_deep_positions() << " ] > ";
 			
