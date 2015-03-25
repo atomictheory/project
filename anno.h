@@ -45,7 +45,7 @@ struct AnnoEntry
 	
 	Move m;
 
-	void init(Position*,char*);
+	void init(Position*,const char*);
 
 };
 
@@ -53,7 +53,7 @@ extern AnnoPtr anno_hash[ANNO_HASH_SIZE];
 extern AnnoEntry anno_table[ANNO_TABLE_SIZE];
 
 extern bool save_annotated_move;
-extern bool annotate_move(Position*,char*,char*);
+extern bool annotate_move(Position*,const char*,const char*);
 
 extern void init_anno();
 

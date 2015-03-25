@@ -35,7 +35,7 @@ namespace PositionSpace
 		return x>0?x:-x;
 	}
 	
-	Square algeb_to_square(const char* algeb)
+	Square algeb_to_square(char* algeb)
 	{
 		if((algeb[0]<'a')||(algeb[0]>('a'+BOARD_WIDTH-1))){return SQUARE_NONE;}
 		if((algeb[1]<'1')||(algeb[1]>('1'+BOARD_HEIGHT-1))){return SQUARE_NONE;}
@@ -137,11 +137,8 @@ namespace PositionSpace
 			}
 		}
 		
-		if((piece==KING)||(piece==VOID_PIECE))
+		if(piece==KING)
 		{
-		
-			// VOID_PIECE has only the normal king moves
-		
 			for(int i=-1;i<=1;i++)
 			{
 				for(int j=-1;j<=1;j++)
@@ -160,25 +157,20 @@ namespace PositionSpace
 				}
 			}
 			
-			if(piece==KING)
+			if((square==CASTLE_FROM_SQUARE_WHITE)||(square==CASTLE_FROM_SQUARE_BLACK))
 			{
-			
-				if((square==CASTLE_FROM_SQUARE_WHITE)||(square==CASTLE_FROM_SQUARE_BLACK))
+				for(int f=-2;f<=2;f+=4)
 				{
-					for(int f=-2;f<=2;f+=4)
-					{
-						md.to_sq=SQUARE_FROM_RANK_FILE(rank,file+f);
-						md.type=(SINGLE_MOVE|KING_MOVE|CASTLING_MOVE);
-						md.type|=(f==-2?CASTLING_QUEEN_SIDE_MOVE:CASTLING_KING_SIDE_MOVE);
-						#ifdef DEBUG_MOVE_TABLE
-						cout << " c " << move_table_init_current_ptr 
-						<< " --> " << square_to_algeb(md.to_sq) 
-						<< endl;
-						#endif
-						move_table[move_table_init_current_ptr++]=md;
-					}
+					md.to_sq=SQUARE_FROM_RANK_FILE(rank,file+f);
+					md.type=(SINGLE_MOVE|KING_MOVE|CASTLING_MOVE);
+					md.type|=(f==-2?CASTLING_QUEEN_SIDE_MOVE:CASTLING_KING_SIDE_MOVE);
+					#ifdef DEBUG_MOVE_TABLE
+					cout << " c " << move_table_init_current_ptr 
+					<< " --> " << square_to_algeb(md.to_sq) 
+					<< endl;
+					#endif
+					move_table[move_table_init_current_ptr++]=md;
 				}
-				
 			}
 		}
 		
@@ -407,10 +399,10 @@ namespace PositionSpace
 	
 	void Position::reset()
 	{
-		set_from_fen((const char*)"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+		set_from_fen((char*)"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
 	}
 
-	void Position::set_from_fen(const char* fen)
+	void Position::set_from_fen(char* fen)
 	{
 	
 		Square sq=0;

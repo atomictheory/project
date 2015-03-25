@@ -48,7 +48,7 @@ void init_main()
 	UnbufstdioSpace::stdin_dequeue_callback=stdin_dequeue_callback_func;
 	#endif
 	
-	set_anno_default();
+	load_anno_book();
 	
 	ofstream o("log.txt",ios::binary);
 	if(o.is_open())
@@ -198,7 +198,7 @@ int main(int argc,char** argv)
 		
 			p.print_board();
 			
-			if(list_move_values)
+			//if(list_move_values)
 			{
 				cout << endl;
 				alphabeta_analyzer->list_move_values(p);
@@ -220,6 +220,47 @@ int main(int argc,char** argv)
 		cin.getline(buf,200);
 		
 		cout << endl;
+		
+		if(0==strcmp(buf,"ad"))
+		{
+			set_anno_default();
+			message="default annotations set";
+			continue;
+		}
+
+		if(buf[0]=='o')
+		{
+
+			if((buf[5]=='=')||(buf[6]=='='))
+			{
+				char* annot;
+				if(buf[5]=='=')
+				{
+					buf[5]=0;
+					annot=buf+6;
+				}
+				else
+				{
+					buf[6]=0;
+					annot=buf+7;
+				}
+
+				if(annotate_move(&p,buf+1,annot))
+				{
+					message="move annotated ok";
+				}
+				else
+				{
+					message="error annotating move ( possible causes: move invalid or out of memory )";
+				}
+			}
+			else
+			{
+				message="wrong annotation syntax, use n[algeb]=[annotation]";
+			}
+
+		}
+
 		
 		if(0==strcmp(buf,"sa"))
 		{

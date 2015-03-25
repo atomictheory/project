@@ -27,7 +27,7 @@ AnnoHashKey calc_anno_hash_key(AnnoTrunk* anno_trunk)
 	return anno_hash_key;
 }
 
-void AnnoEntry::init(Position* p,char* algeb)
+void AnnoEntry::init(Position* p,const char* algeb)
 {
 	next=0;
 
@@ -36,7 +36,7 @@ void AnnoEntry::init(Position* p,char* algeb)
 	strcpy(id.algeb,algeb);
 }
 
-AnnoEntry* look_up_anno_entry(Position* p,char* algeb,bool create)
+AnnoEntry* look_up_anno_entry(Position* p,const char* algeb,bool create)
 {
 
 	AnnoEntry dummy;
@@ -122,7 +122,7 @@ void save_anno_book()
 }
 
 bool save_annotated_move=true;
-bool annotate_move(Position* p,char* algeb,char* annot)
+bool annotate_move(Position* p,const char* algeb,const char* annot)
 {
 
 	if(p->is_algeb_move_legal(algeb))
@@ -271,9 +271,10 @@ void list_annotated_moves(Position* p)
 				cout << " * ( " << (i+1) << " ) " 
 				<< annotated_moves[i].id.algeb << " " 
 				<< annotated_moves[i].annot 
-				<< " ( " 
+				/*<< " ( " 
 				<< annot_nice(annotated_moves[i].annot) 
-				<< " ) " << endl;
+				<< " ) "*/
+				<< endl;
 			}
 			
 		}
@@ -306,5 +307,11 @@ void load_anno_book()
 		i.close();
 
 		cout << "annotation book loaded " << anno_alloc_ptr << " annotated moves " << endl;
+	}
+	else
+	{
+		set_anno_default();
+		
+		cout << "annotation set to default" << endl;
 	}
 }

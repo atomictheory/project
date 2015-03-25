@@ -18,7 +18,7 @@ unbufstdio.o : utils/include/unbufstdio.h utils/include/myhash.h utils/src/unbuf
 anno.o : anno.h anno.cpp
 	g++ -c anno.cpp
 	
-annodefault.o : anno.h annodefault.cpp
+annodefault.o : anno.h position.h annodefault.cpp
 	g++ -c annodefault.cpp
 
 main.o : main.cpp utils/include/myhash.h utils/include/xxhash.h utils/include/unbufstdio.h position.h analyzer.h setup.h
@@ -31,4 +31,5 @@ clean :
 	rm xxhash.o
 	rm unbufstdio.o
 	rm anno.o
+	rm annodefault.o
 	rm main.exe

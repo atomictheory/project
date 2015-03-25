@@ -221,7 +221,7 @@ namespace AnalyzerSpace
 		
 			int no_jobs=0;
 			
-			int max_gen=28;
+			int max_gen=NUM_THREADS*7;
 			
 			SearchJob search_jobs[max_gen];
 			
@@ -693,7 +693,7 @@ namespace AnalyzerSpace
 		{
 			MyHashPtr move_ptr=entry->moves+i;
 			
-			if(i<20)
+			if(i<MAX_LISTED_MOVES)
 			{
 				Move m=move_buffer[move_ptr].m;
 				Score original_search_score=move_buffer[move_ptr].original_search_score;

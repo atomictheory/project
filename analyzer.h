@@ -18,6 +18,7 @@ namespace AnalyzerSpace
 {
 
 	const int QUEUE_LENGTH=(50);
+	const int MAX_LISTED_MOVES=(5);
 
 	extern pthread_mutex_t display_mutex;
 
