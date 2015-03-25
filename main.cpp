@@ -273,6 +273,7 @@ int main(int argc,char** argv)
 		if(0==strcmp(buf,"li"))
 		{
 			list_move_values=true;
+			message="move values listed";
 			continue;
 		}
 		
@@ -313,15 +314,31 @@ int main(int argc,char** argv)
 			continue;
 		}
 		
+		if(buf[0]=='s')
+		{
+			print_prompt=false;
+			alphabeta_analyzer->search_grad(p,(buf[1]-'0'));
+			message="search started";
+		}
+		
+		if(buf[0]=='i')
+		{
+			print_prompt=false;
+			alphabeta_analyzer->search_grad(p,20);
+			message="infinite search started";
+		}
+		
 		if(buf[0]=='d')
 		{
 			print_prompt=false;
+			message="deep search started";
 			AnalyzerSpace::deep_search(p);
 		}
 		
 		if(buf[0]=='v')
 		{
 			alphabeta_analyzer->search_move_values_safe(p);
+			message="move values searched";
 			list_move_values=true;
 		}
 		
@@ -330,23 +347,13 @@ int main(int argc,char** argv)
 			AnalyzerSpace::minimax_smart=true;
 			alphabeta_analyzer->minimax_out(p);
 			AnalyzerSpace::minimax_smart=false;
+			message="tree minimaxed out";
 		}
 		
 		if(buf[0]=='k')
 		{
 			alphabeta_analyzer->add_node(p);
-		}
-		
-		if(buf[0]=='s')
-		{
-			print_prompt=false;
-			alphabeta_analyzer->search_grad(p,(buf[1]-'0'));
-		}
-		
-		if(buf[0]=='i')
-		{
-			print_prompt=false;
-			alphabeta_analyzer->search_grad(p,20);
+			message="node added";
 		}
 	
 		if(buf[0]=='m')
@@ -365,17 +372,17 @@ int main(int argc,char** argv)
 			
 		}
 		
-		/*if(buf[0]=='p')
+		if(buf[0]=='p')
 		{
 		
 			PositionSpace::Move m;
-			m.from_sq=PositionSpace::algeb_to_square(buf+1);
-			m.to_sq=PositionSpace::algeb_to_square(buf+3);
+			m.from_sq=PositionSpace::algeb_to_square((const char*)(buf+1));
+			m.to_sq=PositionSpace::algeb_to_square((const char*)(buf+3));
 			m.type=0;
 			game[++game_ptr]=p;
 			p.make_move(m);
 			message="move made by force ok";
-		}*/
+		}
 		
 		if(buf[0]=='f')
 		{

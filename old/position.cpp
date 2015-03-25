@@ -13,16 +13,21 @@ using namespace std;
 namespace PositionSpace
 {
 
-	int material_values[NUM_PIECES];
+	int material_values[TOTAL_NUM_PIECES];
 	
 	void init_material_values()
 	{
-		material_values[KING]=0;
-		material_values[PAWN]=PAWN_VALUE;
-		material_values[KNIGHT]=KNIGHT_VALUE;
-		material_values[BISHOP]=BISHOP_VALUE;
-		material_values[ROOK]=ROOK_VALUE;
-		material_values[QUEEN]=QUEEN_VALUE;
+		for(int i=0;i<=1;i++)
+		{
+			PieceColor piece_color=(i==1?WHITE_PIECE:BLACK_PIECE);
+			int sign=(i==1?1:-1);
+			material_values[piece_color|KING]=0;
+			material_values[piece_color|PAWN]=sign*PAWN_VALUE;
+			material_values[piece_color|KNIGHT]=sign*KNIGHT_VALUE;
+			material_values[piece_color|BISHOP]=sign*BISHOP_VALUE;
+			material_values[piece_color|ROOK]=sign*ROOK_VALUE;
+			material_values[piece_color|QUEEN]=sign*QUEEN_VALUE;
+		}
 	}
 
 	int move_table_init_current_ptr;
@@ -303,11 +308,11 @@ namespace PositionSpace
 		{
 		
 			board[to_sq]=NO_PIECE;
-			int current_ptr=move_table_ptr[0][KING][to_sq];
+			int current_ptr=move_table_ptr[0][VOID_PIECE][to_sq];
 			while(move_table[current_ptr].type)
 			{
 				Square exp_sq=move_table[current_ptr].to_sq;
-				if((PIECE_OF(board[exp_sq])!=PAWN)&&(!(move_table[current_ptr].type & CASTLING_MOVE)))
+				if(PIECE_OF(board[exp_sq])!=PAWN)
 				{
 					board[exp_sq]=NO_PIECE;
 				}
@@ -731,17 +736,16 @@ namespace PositionSpace
 	{
 		Square sq=king_pos[color];
 		
-		int current_ptr=move_table_ptr[0][KING][sq];
+		int current_ptr=move_table_ptr[0][VOID_PIECE][sq];
 		
 		int num_attackers=0;
 		while(move_table[current_ptr].type)
 		{
 			Square to_sq;
-			if(!(move_table[current_ptr].type & CASTLING_MOVE))
-			{
-				to_sq=move_table[current_ptr].to_sq;
-				num_attackers+=attackers_on_square_of_color(to_sq,OPPOSITE_COLOR(color),COUNT_ALL);
-			}
+			
+			to_sq=move_table[current_ptr].to_sq;
+			num_attackers+=attackers_on_square_of_color(to_sq,OPPOSITE_COLOR(color),COUNT_ALL);
+			
 			current_ptr++;
 		}
 		return num_attackers;
@@ -1111,6 +1115,16 @@ namespace PositionSpace
 		return material;
 	}
 	
+	int Position::count_material_balance_for_color(Color color)
+	{
+		int material=0;
+		for(Square sq=0;sq<BOARD_SIZE;sq++)
+		{
+			material+=material_values[board[sq]];
+		}
+		return turn==WHITE?material:-material;
+	}
+	
 	int Position::heuristic_value_of(Color color)
 	{	
 		return
@@ -1125,9 +1139,27 @@ namespace PositionSpace
 		);
 	}
 	
+	int Position::heuristic_value_non_material_of(Color color)
+	{	
+		return
+		(
+			count_pseudo_legal_moves(color)*MOBILITY_BONUS
+			-
+			attackers_on_king_of_color(color)*ATTACKER_BONUS
+			+
+			rand()%RANDOM_BONUS
+		);
+	}
+	
 	int Position::relative_heuristic_value()
 	{
-		return heuristic_value_of(turn)-heuristic_value_of(OPPOSITE_TURN(turn));
+		return
+			heuristic_value_non_material_of(turn)
+			-
+			heuristic_value_non_material_of(OPPOSITE_TURN(turn))
+			+
+			count_material_balance_for_color(turn)
+			;
 	}
 	
 	bool Position::is_in_check_square(Square sq,Color color)

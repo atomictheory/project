@@ -25,6 +25,7 @@ namespace PositionSpace
 	typedef unsigned char Depth;
 
 	typedef unsigned char Piece;
+	typedef unsigned char PieceColor;
 	typedef unsigned char Square;
 	typedef unsigned char Turn;
 	typedef unsigned char Size;
@@ -124,6 +125,7 @@ namespace PositionSpace
 	typedef unsigned short int MoveCount;
 	
 	const PieceCount NUM_PIECES=WHITE_PIECE;
+	const PieceCount TOTAL_NUM_PIECES=(2*WHITE_PIECE);
 	
 	const MoveCount AVERAGE_NUMBER_OF_LEGAL_MOVES_PER_POSITION=35;
 	const MoveCount MAXIMUM_NUMBER_OF_LEGAL_MOVES_PER_POSITION=350;
@@ -244,7 +246,9 @@ namespace PositionSpace
 		int count_legal_moves(Color);
 		int count_pseudo_legal_moves(Color);
 		int count_material_of_color(Color);
+		int count_material_balance_for_color(Color);
 		int heuristic_value_of(Color);
+		int heuristic_value_non_material_of(Color);
 		int relative_heuristic_value();
 		
 		bool is_in_check_square(Square,Color);

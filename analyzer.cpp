@@ -373,6 +373,8 @@ namespace AnalyzerSpace
 			
 			analyzers[NODE_SELECT_ANALYZER].list_move_values(deep_search_position);
 			
+			cout << endl << endl;
+			
 			Sleep(1000);
 			
 		}while(false/*!quit_deep_search*/);

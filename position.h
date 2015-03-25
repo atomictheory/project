@@ -8,22 +8,26 @@ namespace PositionSpace
 
 	//#define DEBUG_MOVE_TABLE
 	
-	const int MOBILITY_BONUS=(5);
-	const int ATTACKER_BONUS=(10);
-	const int RANDOM_BONUS=(5);
+	///////////////////////////////////////////////////
+	// heuristic tuning
 	
-	const int PAWN_VALUE=(100);
+	const int MOBILITY_BONUS=(3);
+	const int ATTACKER_BONUS=(5);
+	const int RANDOM_BONUS=(3);
+	
+	const int PAWN_VALUE=(125);
 	const int KNIGHT_VALUE=(300);
 	const int BISHOP_VALUE=(300);
 	const int ROOK_VALUE=(500);
 	const int QUEEN_VALUE=(900);
 	const int KING_VALUE=(0);
+	
+	///////////////////////////////////////////////////
 
 	///////////////////////////////////////////////////
 	// basic definitions to set up the board
 	
 	typedef unsigned char Depth;
-
 	typedef unsigned char Piece;
 	typedef unsigned char PieceColor;
 	typedef unsigned char Square;
@@ -52,32 +56,44 @@ namespace PositionSpace
 	
 	const Square SQUARE_NONE=(1 << (BOARD_WIDTH_SHIFT+BOARD_HEIGHT_SHIFT));
 	
+	///////////////////////////////////////////////////
+	
+	///////////////////////////////////////////////////////////////////////////////////
+	// pieces
+	
 	const Piece SLIDING_PIECE=(1 << 2);
 	const Piece DIAGONAL_PIECE=(1 << 1);
 	const Piece STRAIGHT_PIECE=(1 << 0);
 	
 	// no piece
-	const Piece NO_PIECE=(0); // 0
+	const Piece NO_PIECE=(0);											// 0
 
 	// non sliding pieces
-	const Piece KING=(1 << 0); // 1
-	const Piece KNIGHT=(1 << 1); // 2
+	const Piece KING=(1 << 0);											// 1
+	const Piece KNIGHT=(1 << 1);										// 2
 	
 	// pawn is defined king + knight
-	const Piece PAWN=(KING|KNIGHT); // 3
+	const Piece PAWN=(KING|KNIGHT);										// 3
 
 	// void piece is defined as a sliding piece which cannot move in any direction
-	const Piece VOID_PIECE=(SLIDING_PIECE); // 4
+	// it has king moves without castling moves
+	// used for calculating capture explosion squares, adjacent kings and attacked squares around king
+	const Piece VOID_PIECE=(SLIDING_PIECE);								// 4
 
 	// sliding pieces
-	const Piece ROOK=(SLIDING_PIECE|STRAIGHT_PIECE); // 5
-	const Piece BISHOP=(SLIDING_PIECE|DIAGONAL_PIECE); // 6
-	const Piece QUEEN=(SLIDING_PIECE|STRAIGHT_PIECE|DIAGONAL_PIECE); // 7
+	const Piece ROOK=(SLIDING_PIECE|STRAIGHT_PIECE);					// 5
+	const Piece BISHOP=(SLIDING_PIECE|DIAGONAL_PIECE);					// 6
+	const Piece QUEEN=(SLIDING_PIECE|STRAIGHT_PIECE|DIAGONAL_PIECE);	// 7
 	
 	const Piece WHITE_PIECE=(1 << 3);
 	const Piece BLACK_PIECE=(0);
 	
 	const char piece_letters[]=".knp.rbq.KNP.RBQ";
+	
+	///////////////////////////////////////////////////////////////////////////////////
+	
+	///////////////////////////////////////////////////////////////////////////////////
+	// castling rights
 	
 	const CastlingRight CASTLING_RIGHT_K=(1 << 3);
 	const CastlingRight CASTLING_RIGHT_Q=(1 << 2);
@@ -94,6 +110,9 @@ namespace PositionSpace
 	const CastlingRight CASTLING_RIGHT_DISABLE_SQUARE_k=(7);
 	const CastlingRight CASTLING_RIGHT_DISABLE_SQUARE_q=(0);
 	
+	///////////////////////////////////////////////////////////////////////////////////
+	// macro functions
+	
 	#define ALGEB_RANK_OF(RANK) ('1' + BOARD_LAST_RANK_INDEX - RANK)
 	#define ALGEB_FILE_OF(FILE) ('a' + FILE)
 	
@@ -105,7 +124,7 @@ namespace PositionSpace
 	#define FILE_OF_SQUARE(SQUARE) (SQUARE & FILE_MASK)
 	#define RANK_OF_SQUARE(SQUARE) ((SQUARE & RANK_MASK) >> BOARD_WIDTH_SHIFT)
 	
-	///////////////////////////////////////////////////
+	///////////////////////////////////////////////////////////////////////////////////
 	
 	///////////////////////////////////////////////////
 	// move generation
@@ -153,7 +172,9 @@ namespace PositionSpace
 	const MoveType EP_CAPTURE_MOVE=(1 << 19);
 	const MoveType CASTLING_KING_SIDE_MOVE=(1 << 20);
 	const MoveType CASTLING_QUEEN_SIDE_MOVE=(1 << 21);
-		
+	
+	const MoveType SPECIAL_MOVE=(PAWN_PUSH_BY_TWO_MOVE | PROMOTION_MOVE | CASTLING_MOVE);
+
 	const Square CASTLE_FROM_SQUARE_WHITE=(60);
 	const Square CASTLE_FROM_SQUARE_BLACK=(4);
 	
@@ -174,7 +195,10 @@ namespace PositionSpace
 	///////////////////////////////////////////////////
 	
 	void init();
-	Square algeb_to_square(char*);
+	
+	///////////////////////////////////////////////////
+	
+	Square algeb_to_square(const char*);
 	
 	///////////////////////////////////////////////////
 	
@@ -197,20 +221,22 @@ namespace PositionSpace
 	#define OPPOSITE_TURN(TURN) OPPOSITE_COLOR(TURN)
 	#define PIECE_COLOR_OF_COLOR(COLOR) (COLOR==WHITE?WHITE_PIECE:BLACK_PIECE)
 	
-	#define DEBUG_ATTACKERS
-	
-	extern bool debug_attackers;
-	
 	typedef Piece PositionTrunk[BOARD_SIZE+3];
 	
 	typedef unsigned int PosHashKey;
 	
+	///////////////////////////////////////////////////
+	
 	struct Position
 	{
+	
+		///////////////////////////////////////////////////
+		// position trunk, used to calculate the hash key
 		Piece board[BOARD_SIZE];
 		Turn turn;
 		Square ep_square;
 		CastlingRight castling_rights;
+		///////////////////////////////////////////////////
 		
 		int halfmove_clock;
 		int fullmove_number;
@@ -260,6 +286,7 @@ namespace PositionSpace
 		
 		void save();
 		void load();
+		
 	};
 	
 	///////////////////////////////////////////////////

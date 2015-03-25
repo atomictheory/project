@@ -217,14 +217,6 @@ int cmp_moves(const void* a,const void* b)
 void list_annotated_moves(Position* p)
 {
 
-
-	/*cout << "anno alloc " << anno_alloc_ptr << endl;
-	for(int i=1;i<anno_alloc_ptr;i++)
-	{
-		cout << i << ". anno= " << anno_table[i].id.algeb << " " << anno_table[i].annot << " next " << anno_table[i].next << endl;
-	}*/
-
-
 	Position dummy=*p;
 
 	dummy.init_move_generator();
