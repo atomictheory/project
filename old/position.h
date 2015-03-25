@@ -219,7 +219,7 @@ namespace PositionSpace
 		Square king_pos[2];
 		
 		void reset();
-		void set_from_fen(char*);
+		void set_from_fen(const char*);
 		void print_board();
 		
 		void make_move(Move);
