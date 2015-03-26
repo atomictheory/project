@@ -1,9 +1,15 @@
+#include "../../setup.h"
+
 #include "../include/unbufstdio.h"
 
 #include "../include/myhash.h"
 
 #include <stdio.h>
 #include <iostream>
+
+#ifdef MY_MSVC
+#include <Windows.h>
+#endif
 
 using namespace std;
 using namespace MyHashSpace;
@@ -71,7 +77,7 @@ namespace UnbufstdioSpace
 		{
 		
 			cout << "Error creating thread." << endl;
-			exit;
+			exit(0);
 
 		}
 	}

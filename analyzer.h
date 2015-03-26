@@ -17,6 +17,8 @@ using namespace MyHashSpace;
 namespace AnalyzerSpace
 {
 
+	const int MAX_GENERATED_NODES=(7 * NUM_THREADS);
+
 	const int QUEUE_LENGTH=(50);
 	const int MAX_LISTED_MOVES=(5);
 

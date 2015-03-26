@@ -8,7 +8,15 @@
 #include <string.h>
 #include <stdio.h>
 
+#ifdef MY_GNU
 #include <sys/time.h>
+#endif
+
+#ifdef MY_MSVC
+#include <time.h>
+#include <Windows.h>
+#define _CRT_SECURE_NO_WARNINGS
+#endif
 
 using namespace std;
 using namespace PositionSpace;
@@ -156,7 +164,7 @@ namespace AnalyzerSpace
 		{
 		
 			cout << "Error creating thread." << endl;
-			exit;
+			exit(1);
 
 		}
 	}
@@ -221,13 +229,11 @@ namespace AnalyzerSpace
 		
 			int no_jobs=0;
 			
-			int max_gen=NUM_THREADS*7;
-			
-			SearchJob search_jobs[max_gen];
+			SearchJob search_jobs[MAX_GENERATED_NODES];
 			
 			cout << endl << "selecting nodes, ";
 			
-			for(int i=0;i<max_gen;i++)
+			for(int i=0;i<MAX_GENERATED_NODES;i++)
 			{
 			
 				if(analyzers[NODE_SELECT_ANALYZER].select_node(deep_search_position))
@@ -315,7 +321,7 @@ namespace AnalyzerSpace
 					{
 						if(move_alloc_ptr>=DEEP_MAX_MOVE_BUFFER_PTR)
 						{
-							cout << "out of memory" << endl;exit;
+							cout << "out of memory" << endl;exit(1);
 							deep_search_going=false;
 							return NULL;
 						}
@@ -325,7 +331,7 @@ namespace AnalyzerSpace
 							
 							if(entry==NULL)
 							{
-								cout << "out of memory" << endl;exit;
+								cout << "out of memory" << endl;exit(1);
 								deep_search_going=false;
 								return NULL;
 							}
@@ -445,7 +451,7 @@ namespace AnalyzerSpace
 		{
 		
 			cout << "Error creating thread." << endl;
-			exit;
+			exit(1);
 
 		}
 	}
@@ -470,6 +476,8 @@ namespace AnalyzerSpace
 		cout << endl << endl;
 		
 		search_move_values_safe(search_position);
+		
+		return true;
 		
 	}
 	
@@ -768,7 +776,7 @@ namespace AnalyzerSpace
 		{
 			if(move_alloc_ptr>=DEEP_MAX_MOVE_BUFFER_PTR)
 			{
-				cout << "out of memory" << endl;exit;
+				cout << "out of memory" << endl;exit(1);
 				return;
 			}
 			else
@@ -777,7 +785,7 @@ namespace AnalyzerSpace
 				
 				if(entry==NULL)
 				{
-					cout << "out of memory" << endl;exit;
+					cout << "out of memory" << endl;exit(1);
 					return;
 				}
 				else
@@ -793,6 +801,8 @@ namespace AnalyzerSpace
 	{
 
 		((Analyzer*)(void_ptr))->search_grad_call();
+		
+		return NULL;
 
 	}
 	
@@ -855,9 +865,11 @@ namespace AnalyzerSpace
 		{
 
 			cout << "Error creating thread." << endl;
-			exit;
+			exit(1);
 
 		}
+		
+		return 0;
 		
 	}
 	
@@ -870,9 +882,16 @@ namespace AnalyzerSpace
 		
 		nodes=0;
 		
+		#ifdef MY_GNU
 		timeval start,stop;
 		
 		gettimeofday(&start,0);
+		#endif
+		
+		#ifdef MY_MSVC
+		time_t start;
+		time(&start);
+		#endif
 
 		Score score=search_alphabeta(alphabeta_position,0,-INFINITE_SCORE,INFINITE_SCORE);
 		
@@ -881,15 +900,32 @@ namespace AnalyzerSpace
 			return INFINITE_SCORE;
 		}
 		
+		#ifdef MY_GNU
 		gettimeofday(&stop,0);
 		
 		long elapsed=TIMEUS(stop)-TIMEUS(start);
+		elapsed/=1000;
+		#endif
 		
-		float nps=(float)nodes/(float)elapsed*1000.0;
+		#ifdef MY_MSVC
+		time_t stop;
+		time(&stop);
 		
-		if(elapsed==0){nps=0.0;}
+		long elapsed=((long)stop-(long)start)*1000;
+		#endif
 		
-		elapsed/=1000000;
+		float nps;
+		
+		if(elapsed>0)
+		{
+			nps=(float)nodes/(float)elapsed;
+		}
+		else
+		{
+			nps=0.0;
+		}
+		
+		elapsed/=1000;
 		
 		if(search_grad_verbose)
 		{

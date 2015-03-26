@@ -1,3 +1,5 @@
+#include "setup.h"
+
 #include "anno.h"
 
 #include "utils/include/xxhash.h"
@@ -5,6 +7,10 @@
 #include <iostream>
 #include <fstream>
 #include <stdlib.h>
+
+#ifdef MY_MSVC
+#define _CRT_SECURE_NO_WARNINGS
+#endif
 
 using namespace std;
 
@@ -204,6 +210,8 @@ int annot_value(char* annot)
 	if(0==strcmp(annot,"?!")){return -1;}
 	if(0==strcmp(annot,"?")){return -2;}
 	if(0==strcmp(annot,"??")){return -3;}
+	
+	return -3;
 }
 
 int cmp_moves(const void* a,const void* b)

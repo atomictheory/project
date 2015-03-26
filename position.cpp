@@ -673,7 +673,7 @@ namespace PositionSpace
 		
 			Piece test_piece=PIECE_COLOR_OF_COLOR(color)|CHECKING_PIECES[i];
 			
-			bool is_sliding=(test_piece & SLIDING_PIECE);
+			bool is_sliding=((test_piece & SLIDING_PIECE)!=0);
 			
 			int current_ptr=move_table_ptr[OPPOSITE_COLOR(color)][CHECKING_PIECES[i]][sq];
 			
@@ -807,7 +807,7 @@ namespace PositionSpace
 			return true;
 		}
 		
-		return attackers_on_square_of_color(king_pos[color],OPPOSITE_COLOR(color),FIND_FIRST);
+		return (attackers_on_square_of_color(king_pos[color],OPPOSITE_COLOR(color),FIND_FIRST)>0);
 		
 	}
 	
@@ -1039,6 +1039,7 @@ namespace PositionSpace
 		return false;
 	}
 	
+	char algeb_puff[6];
 	const char* Move::algeb()
 	{
 		string algeb="";
@@ -1048,7 +1049,8 @@ namespace PositionSpace
 		{
 			algeb+=piece_letters[INFO_OF_TYPE(type)];
 		}
-		return algeb.c_str();
+		strcpy(algeb_puff,algeb.c_str());
+		return algeb_puff;
 	}
 	
 	bool Move::equal_to(Move m)

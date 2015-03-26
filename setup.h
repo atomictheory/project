@@ -3,6 +3,12 @@
 
 //#define WINBOARD
 
+#if (defined(__GNUC__) || defined(__GNUG__)) && !(defined(__clang__) || defined(__INTEL_COMPILER))
+#define MY_GNU
+#else
+#define MY_MSVC
+#endif
+
 const int MOVE_HASH_SHIFT=(18);
 
 #ifdef WINBOARD
