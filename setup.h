@@ -1,7 +1,31 @@
 #ifndef SETUP_H
 #define SETUP_H
 
+///////////////////////////////////////////////////
+
 #define WINBOARD
+//#define ALLOW_BOOK
+//#define SEARCH_MULTI
+
+///////////////////////////////////////////////////
+
+const int WINBOARD_DEPTH=(6);
+
+///////////////////////////////////////////////////
+// heuristic tuning
+
+const int MOBILITY_BONUS=(10);
+const int ATTACKER_BONUS=(15);
+const int RANDOM_BONUS=(25);
+
+const int PAWN_VALUE=(120);
+const int KNIGHT_VALUE=(300);
+const int BISHOP_VALUE=(300);
+const int ROOK_VALUE=(500);
+const int QUEEN_VALUE=(900);
+const int KING_VALUE=(0);
+
+///////////////////////////////////////////////////
 
 #if (defined(__GNUC__) || defined(__GNUG__)) && !(defined(__clang__) || defined(__INTEL_COMPILER))
 #define MY_GNU

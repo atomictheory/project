@@ -1,28 +1,14 @@
 #ifndef POSITION_H
 #define POSITION_H
 
+#include "setup.h"
+
 using namespace std;
 
 namespace PositionSpace
 {
 
 	//#define DEBUG_MOVE_TABLE
-	
-	///////////////////////////////////////////////////
-	// heuristic tuning
-	
-	const int MOBILITY_BONUS=(3);
-	const int ATTACKER_BONUS=(5);
-	const int RANDOM_BONUS=(3);
-	
-	const int PAWN_VALUE=(125);
-	const int KNIGHT_VALUE=(300);
-	const int BISHOP_VALUE=(300);
-	const int ROOK_VALUE=(500);
-	const int QUEEN_VALUE=(900);
-	const int KING_VALUE=(0);
-	
-	///////////////////////////////////////////////////
 
 	///////////////////////////////////////////////////
 	// basic definitions to set up the board

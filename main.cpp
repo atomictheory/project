@@ -21,8 +21,6 @@ using namespace std;
 #include <Windows.h>
 #endif
 
-int WINBOARD_DEPTH=(5);
-
 #define OBSERVING_STATE 1
 #define WAITING_STATE 2
 #define THINKING_STATE 3
@@ -74,7 +72,9 @@ void init_main()
 	UnbufstdioSpace::stdin_dequeue_callback=stdin_dequeue_callback_func;
 	#endif
 	
+	#ifdef ALLOW_BOOK
 	load_anno_book();
+	#endif
 	
 	ofstream o("log.txt",ios::binary);
 	if(o.is_open())

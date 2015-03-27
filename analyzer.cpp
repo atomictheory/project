@@ -909,7 +909,15 @@ namespace AnalyzerSpace
 	{
 	
 		nodes=0;
-	
+		
+		Score score;
+		
+		#ifndef SEARCH_MULTI
+		score=search_alphabeta(alphabeta_position,0,-INFINITE_SCORE,INFINITE_SCORE);
+		best_move_multi=best_move;
+		return score;
+		#endif
+		
 		Position p=alphabeta_position;
 		
 		p.init_move_generator();
@@ -941,7 +949,7 @@ namespace AnalyzerSpace
 		
 		global_alpha=-INFINITE_SCORE;
 		
-		Score score=-INFINITE_SCORE;
+		score=-INFINITE_SCORE;
 		
 		int num_legal_moves=0;
 		do
@@ -952,9 +960,6 @@ namespace AnalyzerSpace
 			Position dummy=p;
 			
 			dummy.make_move(p.try_move);
-			
-			/*cout << "enqueuing "
-			<< p.try_move.algeb() << endl;*/
 			
 			SearchJob search_job;
 			
@@ -967,19 +972,6 @@ namespace AnalyzerSpace
 			strcpy(search_job.line,p.try_move.algeb());
 			
 			position_queue.enqueue(&search_job);
-			
-			/*Score eval=-search_alphabeta(dummy,0,-INFINITE_SCORE,INFINITE_SCORE);
-			
-			if(eval>score)
-			{
-			
-				best_move_multi=p.try_move;
-				
-				score=eval;
-			}
-			
-			cout << (int)eval 
-			<< endl;*/
 		
 		}while(p.next_legal_move());
 		
@@ -1014,19 +1006,10 @@ namespace AnalyzerSpace
 					
 					store_move(p,result.m,0,score);
 				}
-				
-				/*pthread_mutex_lock(&display_mutex);
-			
-				cout << "multi dequeued result, still waiting for "
-				<< num_legal_moves
-				<< " results"
-				<< endl;
-				
-				pthread_mutex_unlock(&display_mutex);*/
 
 			}
 			
-			Sleep(10);
+			Sleep(5);
 			
 		}
 		
@@ -1063,7 +1046,15 @@ namespace AnalyzerSpace
 		time(&start);
 		#endif
 
+		#ifdef SEARCH_MULTI
+		alphabeta_depth--;
+		#endif
+		
 		Score score=search_multi();
+		
+		#ifdef SEARCH_MULTI
+		alphabeta_depth++;
+		#endif
 		
 		if(quit_search)
 		{
@@ -1130,6 +1121,7 @@ namespace AnalyzerSpace
 		
 			p.init_move_generator();
 			
+			#ifdef SEARCH_MULTI
 			for(int a=0;a<NUM_THREADS;a++)
 			{
 				EvalMove* entry=analyzers[a].look_up_move(p);
@@ -1140,6 +1132,14 @@ namespace AnalyzerSpace
 					break;
 				}
 			}
+			#else
+			EvalMove* entry=look_up_move(p);
+				
+			if(entry!=NULL)
+			{
+				p.set_search_move(entry->m);
+			}
+			#endif
 		
 			while(p.next_legal_move())
 			{
