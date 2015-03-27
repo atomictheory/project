@@ -249,7 +249,7 @@ namespace AnalyzerSpace
 		
 		deep_search_going=true;
 		
-		cout << endl << "initializing position" << endl;
+		cout << "initializing position" << endl << endl;
 		
 		minimax_smart=true;
 		analyzers[NODE_SELECT_ANALYZER].minimax_out(deep_search_position);
@@ -262,7 +262,7 @@ namespace AnalyzerSpace
 			
 			SearchJob search_jobs[MAX_GENERATED_NODES];
 			
-			cout << endl << "selecting nodes, ";
+			cout << "selecting nodes, ";
 			
 			for(int i=0;i<MAX_GENERATED_NODES;i++)
 			{
@@ -317,35 +317,19 @@ namespace AnalyzerSpace
 			
 			while(position_queue.pending())
 			{
-				//cout << "waiting for all analysis to start" << endl;
-				Sleep(100);
-				
-				/*if(quit_deep_search)
-				{
-					deep_search_going=false;
-					return NULL;
-				}*/
+		
+				Sleep(50);
+		
 			}
 			
 			while(no_jobs)
 			{
-			
-				//cout << "waiting for results of " << no_jobs << " jobs" << endl;
-				Sleep(50);
-				
-				/*if(quit_deep_search)
-				{
-					deep_search_going=false;
-					return NULL;
-				}*/
 				
 				if(result_queue.pending())
 				{
 				
 					SearchResult result;
 					result_queue.dequeue(&result);
-					
-					//cout << "result no moves " << result.no_moves << endl;
 					
 					DeepHashValue* entry=position_hash.look_up((PositionTrunk*)&result.p,DONT_CREATE);
 		
@@ -369,8 +353,6 @@ namespace AnalyzerSpace
 							}
 							else
 							{
-							
-								//cout << "updating move hash with result" << endl;
 								
 								PosHashKey key=result.p.calc_key();
 								
@@ -402,66 +384,28 @@ namespace AnalyzerSpace
 					no_jobs--;
 					
 				}
+				else
+				{
+					Sleep(10);
+				}
 				
 			}
 			
-			cout << endl << "all results arrived, minimaxing, positions " << position_hash.value_alloc_ptr << endl << endl;
+			cout << "all results arrived, minimaxing, positions " << position_hash.value_alloc_ptr << endl << endl;
 			
 			analyzers[NODE_SELECT_ANALYZER].minimax_out(deep_search_position);
 			
 			analyzers[NODE_SELECT_ANALYZER].list_move_values(deep_search_position);
 			
-			cout << endl << endl;
+			cout << endl;
 			
-			Sleep(1000);
+			Sleep(500);
 			
-		}while(false/*!quit_deep_search*/);
+		}while(!quit_deep_search);
 		
 		deep_search_going=false;
 		
 		return NULL;
-		
-		/*do
-		{
-		
-			bool node_added=false;
-			
-			for(int i=0;i<10;i++)
-			{
-			
-				if(quit_deep_search)
-				{
-					deep_search_going=false;
-					return NULL;
-				}
-			
-				if(analyzers[NODE_SELECT_ANALYZER].add_node(deep_search_position))
-				{
-					node_added=true;
-					
-					analyzers[NODE_SELECT_ANALYZER].list_move_values(deep_search_position);
-					
-					cout << endl;
-				}
-			}
-			
-			if(node_added)
-			{
-				//cout << "minimaxing" << endl << endl;
-			}
-			else
-			{
-				cout << "warning: node not added in this round" << endl << endl;
-				Sleep(500);
-			}
-			
-			analyzers[NODE_SELECT_ANALYZER].minimax_out(deep_search_position);
-			
-		}while(true);
-		
-		deep_search_going=false;
-		
-		return NULL;*/
 
 	}
 	

@@ -419,6 +419,7 @@ int main(int argc,char** argv)
 			print_prompt=false;
 			alphabeta_analyzer->search_grad(p,(buf[1]-'0'));
 			message="search started";
+			continue;
 		}
 		
 		if(buf[0]=='i')
@@ -427,19 +428,29 @@ int main(int argc,char** argv)
 			alphabeta_analyzer->search_grad(p,20);
 			message="infinite search started";
 		}
-		
+
+		#ifndef SEARCH_MULTI
 		if(buf[0]=='d')
 		{
 			print_prompt=false;
 			message="deep search started";
 			AnalyzerSpace::deep_search(p);
+			continue;
 		}
+		#else
+		if(buf[0]=='d')
+		{
+			message="deep search not supported with multi search";
+			continue;
+		}
+		#endif
 		
 		if(buf[0]=='v')
 		{
 			alphabeta_analyzer->search_move_values_safe(p);
 			message="move values searched";
 			list_move_values=true;
+			continue;
 		}
 		
 		if(buf[0]=='n')
@@ -448,12 +459,14 @@ int main(int argc,char** argv)
 			alphabeta_analyzer->minimax_out(p);
 			AnalyzerSpace::minimax_smart=false;
 			message="tree minimaxed out";
+			continue;
 		}
 		
 		if(buf[0]=='k')
 		{
 			alphabeta_analyzer->add_node(p);
 			message="node added";
+			continue;
 		}
 	
 		if(buf[0]=='m')
@@ -469,6 +482,7 @@ int main(int argc,char** argv)
 			{
 				message="illegal move";
 			}
+			continue;
 			
 		}
 		
@@ -482,12 +496,14 @@ int main(int argc,char** argv)
 			game[++game_ptr]=p;
 			p.make_move(m);
 			message="move made by force ok";
+			continue;
 		}
 		
 		if(buf[0]=='f')
 		{
 			p.set_from_fen(buf+1);
 			message="position set from fen";
+			continue;
 		}
 		
 		if(buf[0]=='u')
@@ -498,6 +514,7 @@ int main(int argc,char** argv)
 			}
 			
 			message="move unmade";
+			continue;
 		}
 		
 		if(buf[0]=='r')
@@ -507,6 +524,7 @@ int main(int argc,char** argv)
 			game_ptr=-1;
 			
 			message="board resetted";
+			continue;
 			
 		}
 		
@@ -524,6 +542,7 @@ int main(int argc,char** argv)
 			ostringstream ss;
 			ss << count;
 			message+=ss.str();
+			continue;
 		}
 	
 	}while(buf[0]!='x');
