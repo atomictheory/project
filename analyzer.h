@@ -19,7 +19,7 @@ namespace AnalyzerSpace
 
 	const int MAX_GENERATED_NODES=(7 * NUM_THREADS);
 
-	const int QUEUE_LENGTH=(50);
+	const int QUEUE_LENGTH=(MAXIMUM_NUMBER_OF_LEGAL_MOVES_PER_POSITION);
 	const int MAX_LISTED_MOVES=(5);
 
 	extern pthread_mutex_t display_mutex;
@@ -71,6 +71,10 @@ namespace AnalyzerSpace
 	{
 		Position p;
 		char line[1000];
+		
+		bool multi;
+		Move m;
+		Depth depth;
 	};
 	
 	struct SearchResult
@@ -80,6 +84,11 @@ namespace AnalyzerSpace
 		DeepHashMove moves[MAXIMUM_NUMBER_OF_LEGAL_MOVES_PER_POSITION];
 		
 		int no_moves;
+		
+		bool multi;
+		Move m;
+		Score score;
+		int nodes;
 	};
 	
 	const int DEEP_MOVE_BUFFER_SIZE=(DEEP_POSITION_BUFFER_SIZE*AVERAGE_NUMBER_OF_LEGAL_MOVES_PER_POSITION);
@@ -119,9 +128,11 @@ namespace AnalyzerSpace
 		int nodes;
 		
 		Move best_move;
+		Move best_move_multi;
 		
 		Score search_alphabeta(Position,Depth,Score,Score);
 		Score search(Position,Depth);
+		Score search_multi();
 		Score search_grad(Position,Depth);
 		Score search_grad_call();
 		

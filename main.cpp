@@ -17,6 +17,22 @@ using namespace std;
 
 #include "setup.h"
 
+#ifdef MY_MSVC
+#include <Windows.h>
+#endif
+
+int WINBOARD_DEPTH=(5);
+
+#define OBSERVING_STATE 1
+#define WAITING_STATE 2
+#define THINKING_STATE 3
+#define PONDERING_STATE 4
+#define PONDER_COMPLETE_STATE 5
+#define ANALYZING_STATE 6
+#define ANALYSIS_COMPLETE_STATE 7
+
+int winboard_state=OBSERVING_STATE;
+
 PositionSpace::Position game[200];
 int game_ptr;
 
@@ -35,6 +51,16 @@ void stdin_dequeue_callback_func(UnbufstdioSpace::Item item)
 		o.close();
 	}
 	
+}
+
+void log_print(const char* l)
+{
+	ofstream o("log.txt",ios::app);
+	if(o.is_open())
+	{
+		o << l << endl;
+		o.close();
+	}
 }
 
 void init_main()
@@ -60,6 +86,9 @@ void init_main()
 	
 	alphabeta_analyzer=&AnalyzerSpace::analyzers[AnalyzerSpace::ALPHABETA_ANALYZER];
 	
+	winboard_state=OBSERVING_STATE;
+	log_print("init: OBSERVING STATE");
+	
 }
 
 #ifdef WINBOARD
@@ -78,10 +107,10 @@ void make_move()
 	else
 	{
 		alphabeta_analyzer->search_position=p;
-		alphabeta_analyzer->search_depth=6;
+		alphabeta_analyzer->search_depth=WINBOARD_DEPTH;
 		alphabeta_analyzer->search_grad_call();
 		
-		best_move=alphabeta_analyzer->best_move;
+		best_move=alphabeta_analyzer->best_move_multi;
 	}
 	
 	game[++game_ptr]=p;
@@ -89,6 +118,9 @@ void make_move()
 	p.make_move(best_move);
 	
 	printf("move %s\n",best_move.algeb());
+	
+	winboard_state=PONDERING_STATE;
+	log_print("move made: OBSERVING STATE");
 	
 }
 
@@ -128,6 +160,55 @@ int main(int argc,char** argv)
 			{
 				p.reset();
 				game_ptr=-1;
+				winboard_state=WAITING_STATE;
+				log_print("new: WAITING STATE");
+				continue;
+			}
+			
+			if(0==strcmp(token,"force"))
+			{
+				winboard_state=OBSERVING_STATE;
+				log_print("force: OBSERVING STATE");
+				alphabeta_analyzer->quit_search_safe();
+				continue;
+			}
+			
+			if(0==strcmp(token,"undo"))
+			{
+				log_print("undo: ");
+				if(game_ptr>=0)
+				{
+					p=game[game_ptr--];
+				}
+				if(
+					(winboard_state==ANALYZING_STATE)
+				)
+				{
+					log_print("undo: ANALYZING STATE");
+					alphabeta_analyzer->quit_search_safe();
+					alphabeta_analyzer->search_grad(p,20);
+				}
+				continue;
+			}
+			
+			if(0==strcmp(token,"analyze"))
+			{
+				if(winboard_state==OBSERVING_STATE)
+				{
+					winboard_state=ANALYZING_STATE;
+					log_print("analyze: ANALYZING STATE");
+				}
+				continue;
+			}
+			
+			if(0==strcmp(token,"exit"))
+			{
+				if(winboard_state==ANALYZING_STATE)
+				{
+					winboard_state=OBSERVING_STATE;
+					log_print("exit: OBSERVING STATE");
+					alphabeta_analyzer->quit_search_safe();
+				}
 				continue;
 			}
 			
@@ -144,17 +225,36 @@ int main(int argc,char** argv)
 				{
 					game[++game_ptr]=p;
 					p.make_move(p.try_move);
+				}
+				
+				if(
+					(winboard_state==WAITING_STATE)
+					||
+					(winboard_state==PONDERING_STATE)
+				)
+				{
+					winboard_state=THINKING_STATE;
+					log_print("usermove: THINKING STATE");
 					make_move();
 				}
+				
+				if(
+					(winboard_state==ANALYZING_STATE)
+				)
+				{
+					log_print("usermove: ANALYZING STATE");
+					alphabeta_analyzer->quit_search_safe();
+					alphabeta_analyzer->search_grad(p,20);
+				}
+				
 				continue;
 			}
 			
 			if(0==strcmp(token,"go"))
 			{
-				if(!computer)
-				{
-					make_move();
-				}
+				winboard_state=THINKING_STATE;
+				log_print("go: THINKING STATE");
+				make_move();
 				continue;
 			}
 			

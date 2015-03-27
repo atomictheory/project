@@ -1,7 +1,7 @@
 #ifndef SETUP_H
 #define SETUP_H
 
-//#define WINBOARD
+#define WINBOARD
 
 #if (defined(__GNUC__) || defined(__GNUG__)) && !(defined(__clang__) || defined(__INTEL_COMPILER))
 #define MY_GNU
@@ -13,7 +13,7 @@ const int MOVE_HASH_SHIFT=(18);
 
 #ifdef WINBOARD
 
-const int NUM_THREADS=(1);
+const int NUM_THREADS=(4);
 const int DEEP_POSITION_BUFFER_SIZE=(2);
 const int DEEP_HASH_SHIFT=(1);
 

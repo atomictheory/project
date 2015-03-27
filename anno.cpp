@@ -306,12 +306,16 @@ void load_anno_book()
 		i.read((char*)&anno_table,sizeof(anno_table));
 		i.close();
 
+		#ifndef WINBOARD
 		cout << "annotation book loaded " << anno_alloc_ptr << " annotated moves " << endl;
+		#endif
 	}
 	else
 	{
 		set_anno_default();
 		
+		#ifndef WINBOARD
 		cout << "annotation set to default" << endl;
+		#endif
 	}
 }

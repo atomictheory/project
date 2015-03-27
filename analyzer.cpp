@@ -24,6 +24,9 @@ using namespace PositionSpace;
 namespace AnalyzerSpace
 {
 
+	Score global_alpha=-INFINITE_SCORE;
+	bool global_quit_search=false;
+
 	pthread_mutex_t display_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 	bool quit_deep_search=false;
@@ -56,12 +59,11 @@ namespace AnalyzerSpace
 			analyzers[i].num_analyzer=i;
 			analyzers[i].move_hash=&move_hashes[i];
 			
-			#ifndef WINBOARD
 			if(i<NUM_THREADS)
 			{
 				analyzers[i].start_analyzer();
 			}
-			#endif
+			
 		}
 		
 	}
@@ -139,20 +141,49 @@ namespace AnalyzerSpace
 				SearchJob sj;
 				position_queue.dequeue(&sj);
 				
-				pthread_mutex_lock(&display_mutex);
+				/*pthread_mutex_lock(&display_mutex);
+				
 				cout 
-				//<< "thread " << me->num_analyzer 
-				//<< " dequeued " 
+				<< "thread " << me->num_analyzer 
+				<< " dequeued " 
 				<< sj.line
 				<< endl;
 				
-				pthread_mutex_unlock(&display_mutex);
+				pthread_mutex_unlock(&display_mutex);*/
 				
-				me->enqueue_move_values(sj.p);
+				if(sj.multi)
+				{
+					SearchResult result;
+					
+					result.m=sj.m;
+					me->alphabeta_depth=sj.depth;
+					me->verbose=false;
+					
+					me->nodes=0;
+					
+					if(!global_quit_search)
+					{
+						result.score=me->search_alphabeta(sj.p,0,global_alpha,INFINITE_SCORE);
+					}
+					else
+					{
+						result.score=INFINITE_SCORE;
+					}
+					
+					result.nodes=me->nodes;
+					
+					result_queue.enqueue(&result);
+				}
+				else
+				{
+					me->enqueue_move_values(sj.p);
+				}
 				
 			}
-			
-			Sleep(250);
+			else
+			{
+				Sleep(10);
+			}
 			
 		}
 		
@@ -258,6 +289,7 @@ namespace AnalyzerSpace
 						SearchJob search_job;
 						
 						search_job.p=p;
+						search_job.multi=false;
 						
 						search_job.line[0]=0;
 						for(int i=0;i<analyzers[NODE_SELECT_ANALYZER].node_move_list_ptr;i++)
@@ -873,8 +905,146 @@ namespace AnalyzerSpace
 		
 	}
 	
+	Score Analyzer::search_multi()
+	{
+	
+		nodes=0;
+	
+		Position p=alphabeta_position;
+		
+		p.init_move_generator();
+		
+		EvalMove* entry=look_up_move(p);
+
+		if(entry!=NULL)
+		{
+			p.set_search_move(entry->m);
+		}
+		
+		if(!p.next_legal_move())
+		{
+			
+			if(p.is_in_check(p.turn))
+			{
+			
+				return -MATE_SCORE;
+				
+			}
+			else
+			{
+			
+				return DRAW_SCORE;
+			
+			}
+			
+		}
+		
+		global_alpha=-INFINITE_SCORE;
+		
+		Score score=-INFINITE_SCORE;
+		
+		int num_legal_moves=0;
+		do
+		{
+		
+			num_legal_moves++;
+	
+			Position dummy=p;
+			
+			dummy.make_move(p.try_move);
+			
+			/*cout << "enqueuing "
+			<< p.try_move.algeb() << endl;*/
+			
+			SearchJob search_job;
+			
+			search_job.p=dummy;
+			
+			search_job.multi=true;
+			search_job.m=p.try_move;
+			search_job.depth=alphabeta_depth;
+			
+			strcpy(search_job.line,p.try_move.algeb());
+			
+			position_queue.enqueue(&search_job);
+			
+			/*Score eval=-search_alphabeta(dummy,0,-INFINITE_SCORE,INFINITE_SCORE);
+			
+			if(eval>score)
+			{
+			
+				best_move_multi=p.try_move;
+				
+				score=eval;
+			}
+			
+			cout << (int)eval 
+			<< endl;*/
+		
+		}while(p.next_legal_move());
+		
+		while(num_legal_moves)
+		{
+		
+			if(quit_search)
+			{
+				global_quit_search=true;
+			}
+		
+			if(result_queue.pending())
+			{
+
+				SearchResult result;
+				result_queue.dequeue(&result);
+				
+				num_legal_moves--;
+				
+				Score eval=-result.score;
+				
+				nodes+=result.nodes;
+				
+				if(eval>score)
+				{
+				
+					best_move_multi=result.m;
+				
+					score=eval;
+					
+					global_alpha=score;
+					
+					store_move(p,result.m,0,score);
+				}
+				
+				/*pthread_mutex_lock(&display_mutex);
+			
+				cout << "multi dequeued result, still waiting for "
+				<< num_legal_moves
+				<< " results"
+				<< endl;
+				
+				pthread_mutex_unlock(&display_mutex);*/
+
+			}
+			
+			Sleep(10);
+			
+		}
+		
+		global_alpha=-INFINITE_SCORE;
+		
+		if(quit_search)
+		{
+			
+			return INFINITE_SCORE;
+		}
+		
+		return score;
+	}
+	
 	Score Analyzer::search(Position set_alphabeta_position,Depth set_alphabeta_depth)
 	{
+	
+		global_quit_search=false;
 	
 		alphabeta_position=set_alphabeta_position;
 	
@@ -893,7 +1063,7 @@ namespace AnalyzerSpace
 		time(&start);
 		#endif
 
-		Score score=search_alphabeta(alphabeta_position,0,-INFINITE_SCORE,INFINITE_SCORE);
+		Score score=search_multi();
 		
 		if(quit_search)
 		{
@@ -932,11 +1102,11 @@ namespace AnalyzerSpace
 		
 			#ifdef WINBOARD
 			
-			printf("%d %d %d %d %s\n",(int)alphabeta_depth,(int)score,(int)elapsed,(int)nodes,best_move.algeb());
+			printf("%d %d %d %d %s\n",(int)alphabeta_depth,(int)score,(int)elapsed,(int)nodes,best_move_multi.algeb());
 			
 			#else
 			
-			printf("%2d  %-5s %4d  time %4d  nodes %9d  nps  %4.1f",(int)alphabeta_depth,best_move.algeb(),score,elapsed,nodes,nps);
+			printf("%2d  %-5s %4d  time %4d  nodes %9d  nps  %4.1f",(int)alphabeta_depth,best_move_multi.algeb(),score,elapsed,nodes,nps);
 			
 			cout << endl;
 			
@@ -960,11 +1130,15 @@ namespace AnalyzerSpace
 		
 			p.init_move_generator();
 			
-			EvalMove* entry=look_up_move(p);
-			
-			if(entry!=NULL)
+			for(int a=0;a<NUM_THREADS;a++)
 			{
-				p.set_search_move(entry->m);
+				EvalMove* entry=analyzers[a].look_up_move(p);
+				
+				if(entry!=NULL)
+				{
+					p.set_search_move(entry->m);
+					break;
+				}
 			}
 		
 			while(p.next_legal_move())
@@ -984,7 +1158,10 @@ namespace AnalyzerSpace
 				}
 				
 				int eval=-search_alphabeta(dummy,depth+1,-beta,-alpha);
-				if(quit_search){return INFINITE_SCORE;}
+				if((quit_search)||(global_quit_search))
+				{
+					return INFINITE_SCORE;
+				}
 				
 				no_searched_moves++;
 				

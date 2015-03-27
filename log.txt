@@ -1,0 +1,6 @@
+init: OBSERVING STATE
+usermove b2b4
+go
+go: THINKING STATE
+move made: OBSERVING STATE
+quit
