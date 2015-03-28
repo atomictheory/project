@@ -169,8 +169,14 @@ namespace PositionSpace
 	#define INFO_OF_TYPE(TYPE) ((TYPE) & ((1 << 8) - 1))
 	
 	const Piece PROMOTION_PIECES[4]={KNIGHT,BISHOP,ROOK,QUEEN};
-	const Piece CHECKING_PIECES[5]={KNIGHT,BISHOP,ROOK,QUEEN,PAWN};
+	
+	#ifdef VARIANT_ATOMIC
+	const Piece CHECKING_PIECES[]={KNIGHT,BISHOP,ROOK,QUEEN,PAWN};
 	const int NUM_CHECKING_PIECES=(5);
+	#else
+	const Piece CHECKING_PIECES[]={KNIGHT,BISHOP,ROOK,QUEEN,PAWN,KING};
+	const int NUM_CHECKING_PIECES=(6);
+	#endif
 	
 	const Piece PIECE_MASK=(WHITE_PIECE - 1);
 	
@@ -255,6 +261,7 @@ namespace PositionSpace
 		bool next_pseudo_legal_move();
 		bool next_legal_move();
 		bool is_algeb_move_legal(const char*);
+		bool is_san_move_legal(const char*);
 		int count_legal_moves(Color);
 		int count_pseudo_legal_moves(Color);
 		int count_material_of_color(Color);
@@ -273,9 +280,13 @@ namespace PositionSpace
 		void save();
 		void load();
 		
+		const char* to_san(Move);
+		
 	};
 	
 	///////////////////////////////////////////////////
+	
+	extern const char* game_to_line(Position*,int);
 
 }
 

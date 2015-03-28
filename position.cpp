@@ -4,6 +4,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include <string>
 #include <string.h>
 #include <stdlib.h>
@@ -194,6 +195,7 @@ namespace PositionSpace
 					md.to_sq=SQUARE_FROM_RANK_FILE(rank+dr,file+f);
 					md.type=PAWN_MOVE;
 					md.type|=(f==0?(PAWN_PUSH_MOVE|PAWN_PUSH_BY_ONE_MOVE):(PAWN_CAPTURE_MOVE|CAPTURE_MOVE));
+					#ifdef VARIANT_ATOMIC
 					if((f==0)&&(rank==pr))
 					{
 						MoveType type=md.type|PROMOTION_MOVE;
@@ -225,6 +227,39 @@ namespace PositionSpace
 						}
 						move_table[move_table_init_current_ptr++]=md;
 					}
+					#else
+					if(rank==pr)
+					{
+						MoveType type=md.type|PROMOTION_MOVE;
+						for(int pp=0;pp<4;pp++)
+						{
+							md.type=type|PROMOTION_PIECES[pp];
+							#ifdef DEBUG_MOVE_TABLE
+							cout << " r " << move_table_init_current_ptr 
+							<< " pp " << pp
+							<< " --> " << square_to_algeb(md.to_sq) 
+							<< " type " << md.type
+							<< " prom piece " << INFO_OF_TYPE(md.type)
+							<< endl;
+							#endif
+							move_table[move_table_init_current_ptr++]=md;						
+						}
+					}
+					else
+					{
+						#ifdef DEBUG_MOVE_TABLE
+						cout << " p " << move_table_init_current_ptr 
+						<< " --> " << square_to_algeb(md.to_sq) 
+						<< " type " << md.type
+						<< endl;
+						#endif
+						if(md.type & PAWN_CAPTURE_MOVE)
+						{
+							md.type|=SQUARE_FROM_RANK_FILE(rank,file+f);
+						}
+						move_table[move_table_init_current_ptr++]=md;
+					}
+					#endif
 				}
 			}
 			
@@ -287,6 +322,7 @@ namespace PositionSpace
 		init_material_values();
 	}
 	
+	#ifdef VARIANT_ATOMIC
 	void Position::make_move(Move m)
 	{
 	
@@ -429,6 +465,119 @@ namespace PositionSpace
 		//init_move_generator();
 		
 	}
+	#else
+	void Position::make_move(Move m)
+	{
+	
+		ep_square=SQUARE_NONE;
+	
+		Square from_sq=m.from_sq;
+		Square to_sq=m.to_sq;
+		Piece from_piece=board[from_sq];
+		Piece to_piece=board[to_sq];
+		MoveType type=m.type;
+		
+		board[from_sq]=NO_PIECE;
+		board[m.to_sq]=from_piece;
+		
+		if(type & EP_CAPTURE_MOVE)
+		{
+			board[INFO_OF_TYPE(type)]=NO_PIECE;
+		}
+		
+		//////////////////////////////////////////////////////////////////////////////
+		// if any corner square becomes empty delete the corresponding castling right
+		
+		if(!board[CASTLING_RIGHT_DISABLE_SQUARE_K])
+		{
+			castling_rights&=~CASTLING_RIGHT_K;
+		}
+		
+		if(!board[CASTLING_RIGHT_DISABLE_SQUARE_Q])
+		{
+			castling_rights&=~CASTLING_RIGHT_Q;
+		}
+		
+		if(!board[CASTLING_RIGHT_DISABLE_SQUARE_k])
+		{
+			castling_rights&=~CASTLING_RIGHT_k;
+		}
+		
+		if(!board[CASTLING_RIGHT_DISABLE_SQUARE_q])
+		{
+			castling_rights&=~CASTLING_RIGHT_q;
+		}
+		
+		//////////////////////////////////////////////////////////////////////////////
+		
+		//////////////////////////////////////////////////////////////////////////////
+		// special moves
+		
+		if(PIECE_OF(from_piece)==KING)
+		{
+			king_pos[TURN_OF(from_piece)]=to_sq;
+			castling_rights&=~(COLOR_OF(from_piece)==WHITE?CASTLING_RIGHT_W:CASTLING_RIGHT_b);
+		}
+		
+		if(type & SPECIAL_MOVE)
+		{
+		
+			if(type & PAWN_PUSH_BY_TWO_MOVE)
+			{
+				ep_square=INFO_OF_TYPE(type);
+			}
+			
+			if(type & PROMOTION_MOVE)
+			{
+				board[m.to_sq]=PIECE_COLOR_OF_COLOR(turn)|INFO_OF_TYPE(m.type);
+			}
+			
+			if(type & CASTLING_MOVE)
+			{
+			
+				if(turn==WHITE)
+				{
+					if(type & CASTLING_KING_SIDE_MOVE)
+					{
+						board[CASTLING_RIGHT_DISABLE_SQUARE_K]=NO_PIECE;
+						board[CASTLE_FROM_SQUARE_WHITE+1]=WHITE_PIECE|ROOK;
+					}
+					
+					if(type & CASTLING_QUEEN_SIDE_MOVE)
+					{
+						board[CASTLING_RIGHT_DISABLE_SQUARE_Q]=NO_PIECE;
+						board[CASTLE_FROM_SQUARE_WHITE-1]=WHITE_PIECE|ROOK;
+					}
+					
+				}
+				else //if(turn==BLACK)
+				{
+					if(type & CASTLING_KING_SIDE_MOVE)
+					{
+						board[CASTLING_RIGHT_DISABLE_SQUARE_k]=NO_PIECE;
+						board[CASTLE_FROM_SQUARE_BLACK+1]=BLACK_PIECE|ROOK;
+					}
+					
+					if(type & CASTLING_QUEEN_SIDE_MOVE)
+					{
+						board[CASTLING_RIGHT_DISABLE_SQUARE_q]=NO_PIECE;
+						board[CASTLE_FROM_SQUARE_BLACK-1]=BLACK_PIECE|ROOK;
+					}
+					
+				}
+				
+			}
+			
+		}
+		
+		//////////////////////////////////////////////////////////////////////////////
+		
+		turn=OPPOSITE_TURN(turn);
+		
+		//init_move_generator();
+		
+	}
+	#endif
 	
 	void Position::reset()
 	{
@@ -663,6 +812,7 @@ namespace PositionSpace
 		
 	}
 	
+	#ifdef VARIANT_ATOMIC
 	int Position::attackers_on_square_of_color(Square sq,Color color,bool find_first)
 	{
 	
@@ -733,6 +883,82 @@ namespace PositionSpace
 		return num_attackers;
 		
 	}
+	#else
+	int Position::attackers_on_square_of_color(Square sq,Color color,bool find_first)
+	{
+	
+		int num_attackers=0;
+		
+		for(int i=0;i<NUM_CHECKING_PIECES;i++)
+		{
+		
+			Piece test_piece=PIECE_COLOR_OF_COLOR(color)|CHECKING_PIECES[i];
+			
+			bool is_sliding=((test_piece & SLIDING_PIECE)!=0);
+			
+			int current_ptr=move_table_ptr[OPPOSITE_COLOR(color)]
+				[
+					CHECKING_PIECES[i]!=KING ? CHECKING_PIECES[i] : VOID_PIECE
+				]
+				[sq];
+			
+			while(move_table[current_ptr].type)
+			{
+			
+				Piece to_piece=board[move_table[current_ptr].to_sq];
+			
+				if(to_piece)
+				{
+					if(to_piece==test_piece)
+					{
+						if(!(move_table[current_ptr].type & PAWN_PUSH_MOVE))
+						{
+							if(find_first)
+							{
+								return 1;
+							}
+							else
+							{
+								num_attackers++;
+								if(is_sliding)
+								{
+									current_ptr=move_table[current_ptr].next_vector;
+								}
+								else
+								{
+									current_ptr++;
+								}
+							}
+						}
+						else
+						{
+							current_ptr++;
+						}
+					}
+					else
+					{
+						if(is_sliding)
+						{
+							current_ptr=move_table[current_ptr].next_vector;
+						}
+						else
+						{
+							current_ptr++;
+						}
+					}
+				}
+				else
+				{
+					current_ptr++;
+				}
+			}
+			
+		}
+		
+		return num_attackers;
+		
+	}
+	#endif
 	
 	int Position::attackers_on_king_of_color(Color color)
 	{
@@ -794,6 +1020,7 @@ namespace PositionSpace
 		
 	}
 	
+	#ifdef VARIANT_ATOMIC
 	bool Position::is_in_check(Color color)
 	{
 		
@@ -810,6 +1037,14 @@ namespace PositionSpace
 		return (attackers_on_square_of_color(king_pos[color],OPPOSITE_COLOR(color),FIND_FIRST)>0);
 		
 	}
+	#else
+	bool Position::is_in_check(Color color)
+	{
+		
+		return (attackers_on_square_of_color(king_pos[color],OPPOSITE_COLOR(color),FIND_FIRST)>0);
+		
+	}
+	#endif
 	
 	void Position::init_move_generator()
 	{
@@ -947,7 +1182,8 @@ namespace PositionSpace
 		
 		return false;
 	}
-	
+
+	#ifdef VARIANT_ATOMIC
 	bool Position::next_legal_move()
 	{
 	
@@ -1038,6 +1274,92 @@ namespace PositionSpace
 		
 		return false;
 	}
+	#else
+	bool Position::next_legal_move()
+	{
+	
+		if((is_search_move)&&(!search_move_done))
+		{
+			try_move=search_move;
+			search_move_done=true;
+			return true;
+		}
+	
+		while(next_pseudo_legal_move())
+		{
+		
+			if((is_search_move)&&(try_move.equal_to(search_move)))
+			{
+				continue;
+			}
+		
+			Position dummy=*this;
+			
+			if(try_move.type & CASTLING_MOVE)
+			{
+			
+				if(turn==WHITE)
+				{
+					if(try_move.type & CASTLING_KING_SIDE_MOVE)
+					{
+						if(!(castling_rights & CASTLING_RIGHT_K)){continue;}
+						if(is_in_check_square(60,WHITE)){continue;}
+						if(is_in_check_square(61,WHITE)){continue;}
+						if(board[61]){continue;}
+						if(board[62]){continue;}
+					}
+					
+					if(try_move.type & CASTLING_QUEEN_SIDE_MOVE)
+					{
+						if(!(castling_rights & CASTLING_RIGHT_Q)){continue;}
+						if(is_in_check_square(60,WHITE)){continue;}
+						if(is_in_check_square(59,WHITE)){continue;}
+						if(board[59]){continue;}
+						if(board[58]){continue;}
+						if(board[57]){continue;}
+					}
+				}
+				
+				if(turn==BLACK)
+				{
+					if(try_move.type & CASTLING_KING_SIDE_MOVE)
+					{
+						if(!(castling_rights & CASTLING_RIGHT_k)){continue;}
+						if(is_in_check_square(4,BLACK)){continue;}
+						if(is_in_check_square(5,BLACK)){continue;}
+						if(board[5]){continue;}
+						if(board[6]){continue;}
+					}
+					
+					if(try_move.type & CASTLING_QUEEN_SIDE_MOVE)
+					{
+						if(!(castling_rights & CASTLING_RIGHT_q)){continue;}
+						if(is_in_check_square(4,BLACK)){continue;}
+						if(is_in_check_square(3,BLACK)){continue;}
+						if(board[3]){continue;}
+						if(board[2]){continue;}
+						if(board[1]){continue;}
+					}
+				}
+			
+			}
+			
+			dummy.make_move(try_move);
+			
+			if(
+				(!dummy.is_in_check(turn))
+			)
+			{
+			
+				return true;
+
+			}
+			
+		}
+		
+		return false;
+	}
+	#endif
 	
 	char algeb_puff[6];
 	const char* Move::algeb()
@@ -1074,6 +1396,26 @@ namespace PositionSpace
 		while(dummy.next_legal_move())
 		{
 			if(0==strcmp(algeb,dummy.try_move.algeb()))
+			{
+				try_move=dummy.try_move;
+				return true;
+			}
+		}
+		
+		return false;
+		
+	}
+	
+	bool Position::is_san_move_legal(const char* san)
+	{
+	
+		Position dummy=*this;
+		
+		dummy.init_move_generator();
+		
+		while(dummy.next_legal_move())
+		{
+			if(0==strcmp(san,dummy.to_san(dummy.try_move)))
 			{
 				try_move=dummy.try_move;
 				return true;
@@ -1258,6 +1600,228 @@ namespace PositionSpace
 		key=XXH32((char*)this,sizeof(PositionTrunk),0);
 		return key;
 		
+	}
+	
+	char to_san_puff[50];
+	const char* Position::to_san(Move m)
+	{
+	
+		MoveType type=m.type;
+		
+		if(type & CASTLING_MOVE)
+		{
+			if(type & CASTLING_KING_SIDE_MOVE)
+			{
+				strcpy(to_san_puff,"O-O");
+				
+			}
+			else
+			{
+				strcpy(to_san_puff,"O-O-O");
+			}
+			return to_san_puff;
+		}
+	
+		Square from_sq=m.from_sq;
+		
+		Rank from_rank=RANK_OF_SQUARE(from_sq);
+		Rank from_file=FILE_OF_SQUARE(from_sq);
+		
+		Piece from_piece=board[from_sq];
+		Piece from_piece_kind=PIECE_OF(from_piece);
+		Piece from_piece_color=COLOR_OF(from_piece);
+		
+		Square to_sq=m.to_sq;
+		
+		Rank to_rank=RANK_OF_SQUARE(to_sq);
+		Rank to_file=FILE_OF_SQUARE(to_sq);
+		
+		int current_ptr=move_table_ptr[from_piece_color][from_piece_kind][to_sq];
+		
+		bool rank_unique=true;
+		bool file_unique=true;
+		
+		while(move_table[current_ptr].type)
+		{
+			MoveDescriptor md=move_table[current_ptr];
+			
+			Square current_from_sq=md.to_sq;
+			Piece current_piece=board[current_from_sq];
+			
+			if(current_piece)
+			{
+				if((current_piece==from_piece)&&(current_from_sq!=from_sq))
+				{
+					Rank current_from_rank=RANK_OF_SQUARE(current_from_sq);
+					Rank current_from_file=FILE_OF_SQUARE(current_from_sq);
+					
+					if(current_from_rank==from_rank){rank_unique=false;}
+					if(current_from_file==from_file){file_unique=false;}
+				}
+				
+				if(from_piece & SLIDING_PIECE)
+				{
+					current_ptr=md.next_vector;
+				}
+				else
+				{
+					current_ptr++;
+				}
+			}
+			else
+			{
+				current_ptr++;
+			}
+		}
+		
+		char piece_letter=piece_letters[WHITE_PIECE|from_piece_kind];
+		
+		char* to_san_ptr=to_san_puff;
+		
+		if(from_piece_kind!=PAWN)
+		{
+			*to_san_ptr++=piece_letter;
+		
+			if(rank_unique && file_unique)
+			{
+				
+			}
+			else if(file_unique)
+			{
+				*to_san_ptr++=ALGEB_FILE_OF(from_file);
+			}
+			else if(rank_unique)
+			{
+				*to_san_ptr++=ALGEB_RANK_OF(from_rank);
+			}
+			else
+			{
+				*to_san_ptr++=ALGEB_FILE_OF(from_file);
+				*to_san_ptr++=ALGEB_RANK_OF(from_rank);
+			}
+			
+		}
+		else
+		{
+			if(type & CAPTURE_MOVE)
+			{
+				*to_san_ptr++=ALGEB_FILE_OF(from_file);
+			}
+		}
+		
+		if(type & CAPTURE_MOVE)
+		{
+			*to_san_ptr++='x';
+		}
+		
+		*to_san_ptr++=ALGEB_FILE_OF(to_file);
+		*to_san_ptr++=ALGEB_RANK_OF(to_rank);
+		
+		*to_san_ptr=0;
+		
+		if(type & EP_CAPTURE_MOVE)
+		{
+			strcpy(to_san_ptr," e.p.");
+		}
+		
+		if(type & PROMOTION_MOVE)
+		{
+			*to_san_ptr++='=';
+			*to_san_ptr++=piece_letters[WHITE_PIECE|INFO_OF_TYPE(type)];
+			*to_san_ptr=0;
+		}
+		
+		Position dummy=*this;
+		
+		dummy.make_move(m);
+		
+		dummy.init_move_generator();
+		if(dummy.next_legal_move())
+		{
+			if(dummy.is_in_check(dummy.turn))
+			{
+				*to_san_ptr++='+';
+				*to_san_ptr=0;
+			}
+		}
+		else
+		{
+			if(dummy.is_in_check(dummy.turn))
+			{
+				*to_san_ptr++='#';
+				*to_san_ptr=0;
+			}
+			else
+			{
+				*to_san_ptr++='=';
+				*to_san_ptr=0;
+			}
+		}
+		
+		return to_san_puff;
+	}
+	
+	char game_to_line_puff[5000];
+	const char* game_to_line(Position* p,int num_moves)
+	{
+	
+	
+		if(num_moves<1)
+		{
+			game_to_line_puff[0]=0;
+			return game_to_line_puff;
+		}
+	
+		ostringstream oss;
+		
+		int full_move_number=p->fullmove_number;
+		
+		for(int i=0;i<num_moves;i++)
+		{
+			if(i==0)
+			{
+				oss << full_move_number << ". ";
+				
+				if(p->turn==BLACK)
+				{
+					oss << "... ";
+				}
+				else
+				{
+					full_move_number++;
+				}
+			}
+			else
+			{
+				if(p->turn==WHITE)
+				{
+					oss << full_move_number << ". ";
+					full_move_number++;
+				}
+			}
+			
+			Position pos=*p;
+			
+			pos.init_move_generator();
+			
+			while(pos.next_legal_move())
+			{
+				Position  dummy=pos;
+				dummy.make_move(pos.try_move);
+				if(0==memcmp((char*)&dummy,(char*)(p+1),sizeof(PositionTrunk)))
+				{
+					oss << pos.to_san(pos.try_move) << " ";
+					break;
+				}
+			}
+			
+			*p++;
+			
+		}
+		
+		strcpy(game_to_line_puff,oss.str().c_str());
+		
+		return game_to_line_puff;
 	}
 
 }

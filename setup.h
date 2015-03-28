@@ -3,6 +3,7 @@
 
 ///////////////////////////////////////////////////
 
+//#define VARIANT_ATOMIC
 //#define WINBOARD
 #define ALLOW_BOOK
 //#define SEARCH_MULTI

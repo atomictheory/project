@@ -298,6 +298,9 @@ int main(int argc,char** argv)
 		
 			p.print_board();
 			
+			game[game_ptr+1]=p;
+			cout << endl << "line: " << game_to_line(game,game_ptr+1) << endl;
+			
 			//if(list_move_values)
 			{
 				cout << endl;
@@ -472,7 +475,7 @@ int main(int argc,char** argv)
 		if(buf[0]=='m')
 		{
 		
-			if(p.is_algeb_move_legal(buf+1))
+			if((p.is_algeb_move_legal(buf+1))||(p.is_san_move_legal(buf+1)))
 			{
 				game[++game_ptr]=p;
 				p.make_move(p.try_move);
@@ -534,7 +537,10 @@ int main(int argc,char** argv)
 			int count=0;
 			while(p.next_legal_move())
 			{
-				cout << p.try_move.algeb() << endl;
+				cout 
+				<< p.try_move.algeb() << " "
+				<< p.to_san(p.try_move)
+				<< endl;
 				count++;
 			}
 			
