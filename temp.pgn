@@ -1,0 +1,14 @@
+[Event "?"]
+[Site "?"]
+[Date "2015.03.29"]
+[Round "?"]
+[White "Ba Attila"]
+[Black "Ba Attila"]
+[Result "*"]
+[Time "18:53:52"]
+[SetUp "1"]
+[FEN "rnbqkb1r/pppppppp/5n2/8/8/2N2N2/PPPPPPPP/R1BQKB1R b KQkq - 3 2"]
+[PlyCount "4"]
+
+2. ... e5 3. e4 d5 4. d4 *
+

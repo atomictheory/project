@@ -519,6 +519,14 @@ int main(int argc,char** argv)
 			continue;
 		}
 		
+		if(buf[0]=='g')
+		{
+			g.set_from_pgn();
+			p=g.current->p;
+			message="game set from pgn";
+			continue;
+		}
+		
 		if(buf[0]=='u')
 		{
 			if(buf[1]=='u')

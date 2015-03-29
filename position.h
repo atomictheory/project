@@ -244,6 +244,7 @@ namespace PositionSpace
 		void set_from_fen(const char*);
 		void print_board();
 		
+		void make_move_raw(Move);
 		void make_move(Move);
 		
 		void print_king_status(Color);
@@ -322,6 +323,8 @@ namespace PositionSpace
 				current=current->next;
 			}
 		}
+		void add_san_move(const char*);
+		void set_from_pgn();
 		Game()
 		{
 			Position p;

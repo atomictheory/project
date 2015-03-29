@@ -323,7 +323,7 @@ namespace PositionSpace
 	}
 	
 	#ifdef VARIANT_ATOMIC
-	void Position::make_move(Move m)
+	void Position::make_move_raw(Move m)
 	{
 	
 		ep_square=SQUARE_NONE;
@@ -466,7 +466,7 @@ namespace PositionSpace
 		
 	}
 	#else
-	void Position::make_move(Move m)
+	void Position::make_move_raw(Move m)
 	{
 	
 		ep_square=SQUARE_NONE;
@@ -578,6 +578,23 @@ namespace PositionSpace
 		
 	}
 	#endif
+	
+	void Position::make_move(Move m)
+	{
+		make_move_raw(m);
+		if(turn==BLACK)
+		{
+			fullmove_number++;
+		}
+		if(m.type & (PAWN_MOVE|CAPTURE_MOVE))
+		{
+			halfmove_clock=0;
+		}
+		else
+		{
+			halfmove_clock++;
+		}
+	}
 	
 	void Position::reset()
 	{
@@ -1877,6 +1894,92 @@ namespace PositionSpace
 			i++;
 			ptr=ptr->next;
 		}
+	}
+	
+	
+	void Game::add_san_move(const char* san)
+	{
+		Position p=current->p;
+		if(p.is_san_move_legal(san))
+		{
+			p.make_move(p.try_move);
+			add_position(p);
+		}
+	}
+	
+	char pgn_puff[5000];
+	void Game::set_from_pgn()
+	{
+		ifstream i("temp.pgn");
+		if(i.is_open())
+		{
+			bool pos_init=false;
+			
+			while(i.getline(pgn_puff,5000))
+			{
+		
+				if(pgn_puff[0])
+				{
+					if(pgn_puff[0]=='[')
+					{
+						string rest=pgn_puff+1;
+						istringstream ins;
+						ins.str(rest);
+			
+						string field;
+						ins >> field;
+						if(field=="FEN")
+						{
+		
+							string raw_fen,turn,castling_rights,ep_square,halfmove_clock,fullmove_number;
+							ins >> raw_fen >> turn >> castling_rights >> ep_square >> halfmove_clock >> fullmove_number;
+							string fen=raw_fen+" "+turn+" "+castling_rights+" "+ep_square+" "+halfmove_clock+" "+fullmove_number;
+							
+							cout << pgn_puff << endl;
+							
+							Position p;
+							
+							p.set_from_fen(fen.c_str()+1);
+							
+							init(p);
+							
+							pos_init=true;
+						}
+					}
+					else
+					{
+					
+						if(!pos_init)
+						{
+							Position p;
+							
+							p.reset();
+							
+							init(p);
+							
+							pos_init=true;
+						}
+						
+						istringstream ins;
+						ins.str(pgn_puff);
+						
+						cout << pgn_puff << endl;
+						
+						while(!ins.eof())
+						{
+							string move_number,move_white,move_black;
+							ins >> move_number >> move_white >> move_black;
+							
+							add_san_move(move_white.c_str());
+							add_san_move(move_black.c_str());
+						}
+						
+					}
+				}
+			}
+			i.close();
+		}
+
 	}
 
 }
