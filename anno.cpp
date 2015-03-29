@@ -8,10 +8,6 @@
 #include <fstream>
 #include <stdlib.h>
 
-#ifdef MY_MSVC
-#define _CRT_SECURE_NO_WARNINGS
-#endif
-
 using namespace std;
 
 bool anno_verbose=false;

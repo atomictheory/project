@@ -34,6 +34,8 @@ int winboard_state=OBSERVING_STATE;
 PositionSpace::Position game[200];
 int game_ptr;
 
+PositionSpace::Game g;
+
 AnalyzerSpace::Analyzer* alphabeta_analyzer;
 
 PositionSpace::Position p;
@@ -298,8 +300,7 @@ int main(int argc,char** argv)
 		
 			p.print_board();
 			
-			game[game_ptr+1]=p;
-			cout << endl << "line: " << game_to_line(game,game_ptr+1) << endl;
+			cout << endl << "line: " << g.line() << endl;
 			
 			//if(list_move_values)
 			{
@@ -398,7 +399,7 @@ int main(int argc,char** argv)
 		{
 			AnalyzerSpace::load_hash();
 			p.load();
-			game_ptr=-1;
+			g.init(p);
 			message="deep hash loaded";
 			continue;
 		}
@@ -477,8 +478,8 @@ int main(int argc,char** argv)
 		
 			if((p.is_algeb_move_legal(buf+1))||(p.is_san_move_legal(buf+1)))
 			{
-				game[++game_ptr]=p;
 				p.make_move(p.try_move);
+				g.add_position(p);
 				message="move made ok";
 			}
 			else
@@ -496,27 +497,63 @@ int main(int argc,char** argv)
 			m.from_sq=PositionSpace::algeb_to_square((const char*)(buf+1));
 			m.to_sq=PositionSpace::algeb_to_square((const char*)(buf+3));
 			m.type=0;
-			game[++game_ptr]=p;
 			p.make_move(m);
+			g.add_position(p);
 			message="move made by force ok";
 			continue;
 		}
 		
 		if(buf[0]=='f')
 		{
+			#ifdef MY_MSVC
+			OpenClipboard(NULL);
+			char fen[200];
+			strncpy_s(fen, (char*)GetClipboardData(CF_TEXT),200);
+			CloseClipboard();
+			p.set_from_fen(fen);
+			#else
 			p.set_from_fen(buf+1);
+			#endif
+			g.init(p);
 			message="position set from fen";
 			continue;
 		}
 		
 		if(buf[0]=='u')
 		{
-			if(game_ptr>=0)
+			if(buf[1]=='u')
 			{
-				p=game[game_ptr--];
+				if(g.current->next!=NULL)
+				{
+					g.unback();
+					
+					p=g.current->p;
+					
+					message="move remade";
+				}
+				else
+				{
+					message="no move to remake";
+				}
+				
 			}
-			
-			message="move unmade";
+			else
+			{
+	
+				if(g.current->prev!=NULL)
+				{
+					g.back();
+					
+					p=g.current->p;
+					
+					message="move unmade";
+				}
+				else
+				{
+					message="no move to unmake";
+				}
+				
+			}
 			continue;
 		}
 		
@@ -524,7 +561,8 @@ int main(int argc,char** argv)
 		{
 		
 			p.reset();
-			game_ptr=-1;
+
+			g.init(p);
 			
 			message="board resetted";
 			continue;

@@ -695,11 +695,20 @@ namespace PositionSpace
 			ep_square=algeb_to_square(fen);
 		}
 		
+		while(f&&(f!=' ')){f=*fen++;};
+		
+		if(f==' ')
+		{
+		
+			string rest=fen;
+			istringstream ins;
+			ins.str(rest);
+			
+			ins >> halfmove_clock >> fullmove_number;
+			
+		}
+		
 		init_move_generator();
-
-		// ignore halfmove clock
-
-		// ignore fullmove number
 
 	}
 	
@@ -730,7 +739,9 @@ namespace PositionSpace
 			
 			if(rank==0)
 			{
-				cout << sep << "turn [ " << NAME_OF_TURN(turn) << " ]";
+				cout << sep << "turn [ " << NAME_OF_TURN(turn)
+				<< " ] , halfmove clock [ " << halfmove_clock
+				<< " ] , fullmove number [ " << fullmove_number << " ]";
 			}
 			
 			if(rank==1)
@@ -1762,66 +1773,110 @@ namespace PositionSpace
 	}
 	
 	char game_to_line_puff[5000];
-	const char* game_to_line(Position* p,int num_moves)
+	const char* Game::line()
 	{
-	
-	
-		if(num_moves<1)
-		{
-			game_to_line_puff[0]=0;
-			return game_to_line_puff;
-		}
 	
 		ostringstream oss;
 		
-		int full_move_number=p->fullmove_number;
+		oss << "";
 		
-		for(int i=0;i<num_moves;i++)
+		int fullmove_number;
+		
+		GameItem* ptr=game;
+		
+		bool init=true;
+		
+		while((ptr->next!=NULL)&&(ptr!=current))
 		{
-			if(i==0)
+		
+			Position p=ptr->p;
+		
+			if(init)
 			{
-				oss << full_move_number << ". ";
+			
+				fullmove_number=p.fullmove_number;
+			
+				oss << fullmove_number << ". ";
 				
-				if(p->turn==BLACK)
+				if(p.turn==BLACK)
 				{
 					oss << "... ";
 				}
-				else
-				{
-					full_move_number++;
-				}
+				
+				init=false;
 			}
 			else
 			{
-				if(p->turn==WHITE)
+				if(p.turn==WHITE)
 				{
-					oss << full_move_number << ". ";
-					full_move_number++;
+					fullmove_number++;
+					oss << fullmove_number << ". ";
 				}
 			}
 			
-			Position pos=*p;
+			p.init_move_generator();
 			
-			pos.init_move_generator();
-			
-			while(pos.next_legal_move())
+			while(p.next_legal_move())
 			{
-				Position  dummy=pos;
-				dummy.make_move(pos.try_move);
-				if(0==memcmp((char*)&dummy,(char*)(p+1),sizeof(PositionTrunk)))
+				Position  dummy=p;
+				dummy.make_move(p.try_move);
+				if(0==memcmp((char*)&dummy,(char*)(&((ptr->next)->p)),sizeof(PositionTrunk)))
 				{
-					oss << pos.to_san(pos.try_move) << " ";
+					oss << p.to_san(p.try_move) << " ";
 					break;
 				}
 			}
 			
-			*p++;
+			ptr=ptr->next;
 			
 		}
 		
 		strcpy(game_to_line_puff,oss.str().c_str());
 		
 		return game_to_line_puff;
+		
+	}
+	
+	void Game::add_position(Position p)
+	{
+	
+		GameItem* entry=new GameItem;
+		entry->p=p;
+		
+		entry->prev=NULL;
+		entry->next=NULL;
+		
+		if(current==NULL)
+		{
+			game=entry;
+		}
+		else
+		{
+			current->next=entry;
+			entry->prev=current;
+		}
+		
+		current=entry;
+		
+	}
+	
+	void Game::debug()
+	{
+		GameItem* ptr=game;
+		int i=0;
+		cout << "game " << game 
+		<< " current " << current
+		<< endl;
+		while(ptr!=NULL)
+		{
+			cout << "game " << i << " ptr " << ptr 
+			<< " prev " << ptr->prev 
+			<< " next " << ptr->next 
+			<< endl;
+			ptr->p.print_board();
+			i++;
+			ptr=ptr->next;
+		}
 	}
 
 }

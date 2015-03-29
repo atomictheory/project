@@ -1,6 +1,8 @@
 #ifndef POSITION_H
 #define POSITION_H
 
+#include <cstddef>
+
 #include "setup.h"
 
 using namespace std;
@@ -286,7 +288,47 @@ namespace PositionSpace
 	
 	///////////////////////////////////////////////////
 	
-	extern const char* game_to_line(Position*,int);
+	struct GameItem
+	{
+		Position p;
+		GameItem* prev;
+		GameItem* next;
+	};
+	
+	class Game
+	{
+		public:
+		GameItem* game;
+		GameItem* current;
+		void add_position(Position);
+		const char* line();
+		void debug();
+		void init(Position p)
+		{
+			current=NULL;
+			add_position(p);
+		}
+		void back()
+		{
+			if(current->prev!=NULL)
+			{
+				current=current->prev;
+			}
+		}
+		void unback()
+		{
+			if(current->next!=NULL)
+			{
+				current=current->next;
+			}
+		}
+		Game()
+		{
+			Position p;
+			p.reset();
+			init(p);
+		}
+	};
 
 }
 

@@ -15,7 +15,6 @@
 #ifdef MY_MSVC
 #include <time.h>
 #include <Windows.h>
-#define _CRT_SECURE_NO_WARNINGS
 #endif
 
 using namespace std;
