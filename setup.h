@@ -3,12 +3,17 @@
 
 ///////////////////////////////////////////////////
 
-//#define VARIANT_ATOMIC
+#define VARIANT_ATOMIC
 //#define WINBOARD
 #define ALLOW_BOOK
 //#define SEARCH_MULTI
 
 ///////////////////////////////////////////////////
+
+#define SETUP_DEEPNESS 10
+#define SETUP_DEPTH_BONUS 5
+#define SETUP_MINIMAX_DEPTH 30
+#define SETUP_MAX_LISTED_MOVES 20
 
 const int WINBOARD_DEPTH=(6);
 
@@ -34,6 +39,8 @@ const int KING_VALUE=(0);
 #define MY_MSVC
 #endif
 
+///////////////////////////////////////////////////
+
 const int MOVE_HASH_SHIFT=(18);
 
 #ifdef WINBOARD
@@ -45,7 +52,7 @@ const int DEEP_HASH_SHIFT=(1);
 #else
 
 const int NUM_THREADS=(4);
-const int DEEP_POSITION_BUFFER_SIZE=(50000);
+const int DEEP_POSITION_BUFFER_SIZE=(100000);
 const int DEEP_HASH_SHIFT=(16);
 
 #endif

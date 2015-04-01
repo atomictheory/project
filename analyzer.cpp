@@ -32,8 +32,8 @@ namespace AnalyzerSpace
 	bool deep_search_going=false;
 
 	Score CUTOFF=-9000;
-	int DEEPNESS=25;
-	int DEPTH_BONUS=25;
+	int DEEPNESS=SETUP_DEEPNESS;
+	int DEPTH_BONUS=SETUP_DEPTH_BONUS;
 	int DEEP_SEARCH_DEPTH=MINIMAX_DEPTH;
 
 	MyHash<PositionTrunk,DeepHashValue,DEEP_HASH_SHIFT,DEEP_POSITION_BUFFER_SIZE> position_hash;
@@ -480,10 +480,43 @@ namespace AnalyzerSpace
 			return false;
 		}
 		
+		int rlimit=DEEPNESS+depth*DEPTH_BONUS;
+		
+		// correct limit if there are only a few moves
+		
+		int moves_before_cutoff=0;
+		for(int i=0;i<entry->no_moves;i++)
+		{
+			if(move_buffer[entry->moves+i].eval>CUTOFF)
+			{
+				moves_before_cutoff++;
+			}
+			else
+			{
+				break;
+			}
+		}
+		
+		if(moves_before_cutoff>0)
+		{
+			int corrlimit=150/moves_before_cutoff;
+			if(rlimit<corrlimit)
+			{
+				rlimit=corrlimit;
+			}
+		}
+		
+		int mainr=rand()%100;
+		
+		if(mainr<65)
+		{
+			rlimit+=65;
+		}
+		
 		for(int i=0;i<entry->no_moves;i++)
 		{
 			int r=rand()%100;
-			int rlimit=DEEPNESS+depth*DEPTH_BONUS;
+			
 			Move m=move_buffer[entry->moves+i].m;
 			
 			/*cout 

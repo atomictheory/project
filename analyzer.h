@@ -20,7 +20,7 @@ namespace AnalyzerSpace
 	const int MAX_GENERATED_NODES=(7 * NUM_THREADS);
 
 	const int QUEUE_LENGTH=(MAXIMUM_NUMBER_OF_LEGAL_MOVES_PER_POSITION);
-	const int MAX_LISTED_MOVES=(5);
+	const int MAX_LISTED_MOVES=(SETUP_MAX_LISTED_MOVES);
 
 	extern pthread_mutex_t display_mutex;
 
@@ -107,7 +107,7 @@ namespace AnalyzerSpace
 	
 	extern KickHash <PositionTrunk,EvalMove,MOVE_HASH_SHIFT> move_hashes[NUM_ANALYZERS];
 	
-	const Depth MINIMAX_DEPTH=(25);
+	const Depth MINIMAX_DEPTH=(SETUP_MINIMAX_DEPTH);
 	const Depth REP_DEPTH=(MINIMAX_DEPTH+10);
 	
 	extern void load_hash();

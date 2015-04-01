@@ -505,6 +505,14 @@ int main(int argc,char** argv)
 		
 		if(buf[0]=='f')
 		{
+			bool do_search=false;
+			if(alphabeta_analyzer->search_going)
+			{
+				alphabeta_analyzer->quit_search_safe();
+				cout << endl << "---------------------------" << endl << endl;
+				print_prompt=false;
+				do_search=true;
+			}
 			#ifdef MY_MSVC
 			OpenClipboard(NULL);
 			char fen[200];
@@ -515,6 +523,10 @@ int main(int argc,char** argv)
 			p.set_from_fen(buf+1);
 			#endif
 			g.init(p);
+			if(do_search)
+			{
+				alphabeta_analyzer->search_grad(p,20);
+			}
 			message="position set from fen";
 			continue;
 		}
