@@ -3,7 +3,7 @@ main : main.o xxhash.o position.o analyzer.o unbufstdio.o anno.o annodefault.o
 	mkdir -p Data
 	cp main.exe c:/unzip
 	
-position.o : position.cpp position.h
+position.o : position.cpp position.h setup.h
 	g++ -c position.cpp
 	
 analyzer.o : analyzer.cpp analyzer.h position.h utils/include/myhash.h setup.h
@@ -12,13 +12,13 @@ analyzer.o : analyzer.cpp analyzer.h position.h utils/include/myhash.h setup.h
 xxhash.o : utils/include/xxhash.h utils/src/xxhash.c
 	g++ -c utils/src/xxhash.c
 	
-unbufstdio.o : utils/include/unbufstdio.h utils/include/myhash.h utils/src/unbufstdio.cpp
+unbufstdio.o : utils/include/unbufstdio.h utils/include/myhash.h utils/src/unbufstdio.cpp setup.h
 	g++ -c utils/src/unbufstdio.cpp
 	
-anno.o : anno.h anno.cpp
+anno.o : anno.h anno.cpp setup.h
 	g++ -c anno.cpp
 	
-annodefault.o : anno.h position.h annodefault.cpp
+annodefault.o : anno.h position.h annodefault.cpp setup.h
 	g++ -c annodefault.cpp
 
 main.o : main.cpp utils/include/myhash.h utils/include/xxhash.h utils/include/unbufstdio.h position.h analyzer.h setup.h
