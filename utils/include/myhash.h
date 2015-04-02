@@ -1,16 +1,80 @@
 #ifndef MYHASH_H
 #define MYHASH_H
 
+#include "../../setup.h"
+
 #include <string.h>
 
 #include "xxhash.h"
 #include "pthread.h"
 
-#define NULL_PTR 0
+#ifdef MY_GNU
+#include <sys/time.h>
+#else
+//#ifdef MY_MSVC
+#include <time.h>
+#endif
+
+namespace MyHashSpace {
 
 //#define MYHASH_DEBUG
 
-namespace MyHashSpace {
+#define NULL_PTR 0
+
+#define TIMEUS(TS) (1000000 * TS.tv_sec + TS.tv_usec)
+
+class MyTimer
+{
+	public:
+	
+	#ifdef MY_GNU
+	timeval start,stop;
+	#else
+	//#ifdef MY_MSVC
+	time_t start,stop;
+	#endif
+	
+	double elapsed;
+	
+	void start_timer()
+	{
+		#ifdef MY_GNU
+		gettimeofday(&start,0);
+		#else
+		//#ifdef MY_MSVC
+		time(&start);
+		#endif
+	}
+	
+	void stop_timer()
+	{
+		#ifdef MY_GNU
+		gettimeofday(&stop,0);
+		#else
+		//#ifdef MY_MSVC
+		time(&stop);
+		#endif
+	}
+	
+	double elapsed_time()
+	{
+		#ifdef MY_GNU
+		elapsed=(double)TIMEUS(stop)-(double)TIMEUS(start);
+		elapsed/=1000.0;
+		#else
+		//#ifdef MY_MSVC
+		time(&stop);
+		elapsed=((double)stop-(double)start)*1000.0;
+		#endif
+		
+		return elapsed;
+	}
+	
+	MyTimer()
+	{
+		start_timer();
+	}
+};
 
 const bool DO_CREATE=true;
 const bool DONT_CREATE=false;

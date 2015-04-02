@@ -1561,7 +1561,7 @@ namespace PositionSpace
 			{
 				if(PIECE_OF(piece)==PAWN)
 				{
-					corr+=material_values[piece]/2;
+					corr+=3*material_values[piece]/4;
 				}
 				
 				if(PIECE_OF(piece)==QUEEN)

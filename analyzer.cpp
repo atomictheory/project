@@ -23,6 +23,10 @@ using namespace PositionSpace;
 namespace AnalyzerSpace
 {
 
+	int minimax_depth=SETUP_MINIMAX_DEPTH;
+	int deep_search_depth=SETUP_MINIMAX_DEPTH;
+	int max_generated_nodes=SETUP_GENERATED_NODES;
+
 	int minimax_depth_corr=0;
 	bool show_positions_loaded=false;
 	int positions_loaded=0;
@@ -38,7 +42,6 @@ namespace AnalyzerSpace
 	Score CUTOFF=-9000;
 	int DEEPNESS=SETUP_DEEPNESS;
 	int DEPTH_BONUS=SETUP_DEPTH_BONUS;
-	int DEEP_SEARCH_DEPTH=MINIMAX_DEPTH;
 
 	MyHash<PositionTrunk,DeepHashValue,DEEP_HASH_SHIFT,DEEP_POSITION_BUFFER_SIZE> position_hash;
 	DeepHashMove move_buffer[DEEP_MOVE_BUFFER_SIZE];
@@ -260,8 +263,11 @@ namespace AnalyzerSpace
 		
 		cout << "initializing position" << endl << endl;
 		
+		minimax_depth=SETUP_MINIMAX_DEPTH;
+		max_generated_nodes=SETUP_GENERATED_NODES;
+		
 		minimax_smart=true;
-		minimax_depth_corr=(MINIMAX_DEPTH-10);
+		minimax_depth_corr=(minimax_depth-SETUP_INIT_DEPTH);
 		positions_loaded=0;
 		show_positions_loaded=true;
 		analyzers[NODE_SELECT_ANALYZER].minimax_out(deep_search_position);
@@ -276,9 +282,11 @@ namespace AnalyzerSpace
 			
 			SearchJob search_jobs[MAX_GENERATED_NODES];
 			
-			cout << "selecting nodes, ";
+			cout << "selecting nodes" << endl;
 			
-			for(int i=0;i<MAX_GENERATED_NODES;i++)
+			deep_search_depth=minimax_depth;
+			
+			for(int i=0;i<max_generated_nodes;i++)
 			{
 			
 				if(analyzers[NODE_SELECT_ANALYZER].select_node(deep_search_position))
@@ -322,7 +330,9 @@ namespace AnalyzerSpace
 				
 			}
 			
-			cout << "number of selected nodes " << no_jobs << endl << endl;
+			cout << "number of selected nodes " << no_jobs << endl;
+			
+			MyTimer analysis_t;
 			
 			for(int f=0;f<no_jobs;f++)
 			{
@@ -405,9 +415,53 @@ namespace AnalyzerSpace
 				
 			}
 			
-			cout << "all results arrived, minimaxing, positions " << position_hash.value_alloc_ptr << endl << endl;
+			analysis_t.stop_timer();
+			
+			double elapsed=analysis_t.elapsed_time();
+			
+			cout << "all results arrived within " << (int)(elapsed/1000) << " sec " << endl;
+			if(elapsed>30000)
+			{
+				max_generated_nodes-=NUM_THREADS;
+				if(max_generated_nodes<NUM_THREADS){max_generated_nodes=NUM_THREADS;}
+				cout << "max generated nodes adjusted down to " << max_generated_nodes << endl;
+				
+			}
+			if(elapsed<20000)
+			{
+				max_generated_nodes+=NUM_THREADS;
+				if(max_generated_nodes>(MAX_GENERATED_NODES-NUM_THREADS)){max_generated_nodes=MAX_GENERATED_NODES-NUM_THREADS;}
+				cout << "max generated nodes adjusted up to " << max_generated_nodes << endl;
+			}
+			cout << "minimaxing to depth " << minimax_depth
+			<< " ( positions in memory " << position_hash.value_alloc_ptr << " ) " << endl;
+			
+			MyTimer minimax_t;
 			
 			analyzers[NODE_SELECT_ANALYZER].minimax_out(deep_search_position);
+			
+			minimax_t.stop_timer();
+			
+			elapsed=minimax_t.elapsed_time();
+			
+			cout << "minimax took " << (int)(elapsed/1000) << " sec " << endl;
+			
+			if(elapsed>10000)
+			{
+				minimax_depth--;
+				if(minimax_depth<5){minimax_depth=5;}
+				cout << "minimax depth adjusted down to " << minimax_depth << endl;
+				
+			}
+			
+			if(elapsed<5000)
+			{
+				minimax_depth++;
+				if(minimax_depth>SETUP_MAX_MINIMAX_DEPTH){minimax_depth=SETUP_MAX_MINIMAX_DEPTH;}
+				cout << "minimax depth adjusted up to " << minimax_depth << endl;
+			}
+			
+			cout << endl;
 			
 			analyzers[NODE_SELECT_ANALYZER].list_move_values(deep_search_position);
 			
@@ -484,7 +538,7 @@ namespace AnalyzerSpace
 			return true;
 		}
 		
-		if(depth>DEEP_SEARCH_DEPTH)
+		if(depth>deep_search_depth)
 		{
 			//cout << "max depth reached at " << (int)depth << endl;
 			return false;
@@ -596,7 +650,7 @@ namespace AnalyzerSpace
 			return INFINITE_SCORE;
 		}
 		
-		if(depth>=(MINIMAX_DEPTH-minimax_depth_corr))
+		if(depth>=(minimax_depth-minimax_depth_corr))
 		{
 			return INFINITE_SCORE;
 		}
@@ -676,7 +730,7 @@ namespace AnalyzerSpace
 	char* calc_pv_recursive(Depth depth,Position p)
 	{
 	
-		if(depth>MINIMAX_DEPTH)
+		if(depth>minimax_depth)
 		{
 			return calc_pv_buffer;
 		}
