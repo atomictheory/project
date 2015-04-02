@@ -1536,10 +1536,12 @@ namespace PositionSpace
 	
 	int Position::count_endgame_corr_for_color(Color color)
 	{
-		if(abs_mat>4000)
+		if(abs_mat>6000)
 		{
 			return 0;
 		}
+		
+		bool semi_endgame=(abs_mat>4000);
 		
 		int corr=0;
 		
@@ -1547,9 +1549,25 @@ namespace PositionSpace
 		{
 		
 			Piece piece=board[sq];
-			if(PIECE_OF(piece)==PAWN)
+			
+			if(semi_endgame)
 			{
-				corr+=material_values[piece]/3;
+				if(PIECE_OF(piece)==QUEEN)
+				{
+					corr+=material_values[piece]/5;
+				}
+			}
+			else
+			{
+				if(PIECE_OF(piece)==PAWN)
+				{
+					corr+=material_values[piece]/2;
+				}
+				
+				if(PIECE_OF(piece)==QUEEN)
+				{
+					corr+=material_values[piece]/4;
+				}
 			}
 			
 		}
