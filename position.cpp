@@ -832,8 +832,9 @@ namespace PositionSpace
 		
 		cout << endl << "   abcdefgh"
 		<< sep
-		<< "heu w " << heuristic_value_of(WHITE)
-		<< " heu b " << heuristic_value_of(BLACK)
+		<< "matb " << count_material_balance_for_color(turn)
+		;
+		cout << " ecorr " << count_endgame_corr_for_color(turn)
 		<< " heu rel " << relative_heuristic_value();
 		
 		cout << endl;
@@ -1508,7 +1509,7 @@ namespace PositionSpace
 			}
 		}
 		
-		return material;
+		return abs(material);
 		
 	}
 	
@@ -1517,12 +1518,43 @@ namespace PositionSpace
 	
 		int material=0;
 		
+		abs_mat=0;
+		
 		for(Square sq=0;sq<BOARD_SIZE;sq++)
 		{
-			material+=material_values[board[sq]];
+		
+			int mat_value=material_values[board[sq]];
+		
+			material+=mat_value;
+			
+			abs_mat+=abs(mat_value);
 		}
 		
 		return turn==WHITE?material:-material;
+		
+	}
+	
+	int Position::count_endgame_corr_for_color(Color color)
+	{
+		if(abs_mat>4000)
+		{
+			return 0;
+		}
+		
+		int corr=0;
+		
+		for(Square sq=0;sq<BOARD_SIZE;sq++)
+		{
+		
+			Piece piece=board[sq];
+			if(PIECE_OF(piece)==PAWN)
+			{
+				corr+=material_values[piece]/3;
+			}
+			
+		}
+		
+		return turn==WHITE?corr:-corr;
 		
 	}
 	
@@ -1563,14 +1595,18 @@ namespace PositionSpace
 	int Position::relative_heuristic_value()
 	{
 	
-		return
-		(
+		int value=
 		
 			heuristic_value_non_material_of(turn)
 			-
 			heuristic_value_non_material_of(OPPOSITE_TURN(turn))
 			+
-			count_material_balance_for_color(turn)
+			count_material_balance_for_color(turn);
+	
+		return
+		(
+		
+			value+count_endgame_corr_for_color(turn)
 			
 		);
 		

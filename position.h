@@ -285,6 +285,9 @@ namespace PositionSpace
 		
 		const char* to_san(Move);
 		
+		int count_endgame_corr_for_color(Color);
+		short int abs_mat;
+		
 	};
 	
 	///////////////////////////////////////////////////
