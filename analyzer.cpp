@@ -23,6 +23,10 @@ using namespace PositionSpace;
 namespace AnalyzerSpace
 {
 
+	int minimax_depth_corr=0;
+	bool show_positions_loaded=false;
+	int positions_loaded=0;
+
 	Score global_alpha=-INFINITE_SCORE;
 	bool global_quit_search=false;
 
@@ -102,6 +106,12 @@ namespace AnalyzerSpace
 						entry->key=dummy.key;
 						
 						move_alloc_ptr+=entry->no_moves;
+						
+						positions_loaded++;
+						if(show_positions_loaded)
+						{
+							cout << positions_loaded << " positions loaded" << endl;
+						}
 						
 						return entry;
 					}
@@ -251,7 +261,12 @@ namespace AnalyzerSpace
 		cout << "initializing position" << endl << endl;
 		
 		minimax_smart=true;
+		minimax_depth_corr=(MINIMAX_DEPTH-10);
+		positions_loaded=0;
+		show_positions_loaded=true;
 		analyzers[NODE_SELECT_ANALYZER].minimax_out(deep_search_position);
+		//show_positions_loaded=false;
+		minimax_depth_corr=0;
 		minimax_smart=false;
 		
 		do
@@ -458,7 +473,8 @@ namespace AnalyzerSpace
 	
 	bool Analyzer::select_node_recursive(Depth depth,Position p)
 	{
-		DeepHashValue* entry=position_hash.look_up((PositionTrunk*)&p,DONT_CREATE);
+		//DeepHashValue* entry=position_hash.look_up((PositionTrunk*)&p,DONT_CREATE);
+		DeepHashValue* entry=smart_look_up(p);
 		
 		if(entry==NULL)
 		{
@@ -580,7 +596,7 @@ namespace AnalyzerSpace
 			return INFINITE_SCORE;
 		}
 		
-		if(depth>=MINIMAX_DEPTH)
+		if(depth>=(MINIMAX_DEPTH-minimax_depth_corr))
 		{
 			return INFINITE_SCORE;
 		}
