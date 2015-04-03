@@ -31,8 +31,6 @@ namespace AnalyzerSpace
 	
 	extern bool minimax_smart;
 
-	#define TIMEUS(TS) (1000000 * TS.tv_sec + TS.tv_usec)
-
 	typedef short int Score;
 	
 	const Score DRAW_SCORE=0;

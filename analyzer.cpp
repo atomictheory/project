@@ -8,12 +8,7 @@
 #include <string.h>
 #include <stdio.h>
 
-#ifdef MY_GNU
-#include <sys/time.h>
-#endif
-
 #ifdef MY_MSVC
-#include <time.h>
 #include <Windows.h>
 #endif
 
@@ -1081,16 +1076,7 @@ namespace AnalyzerSpace
 		
 		nodes=0;
 		
-		#ifdef MY_GNU
-		timeval start,stop;
-		
-		gettimeofday(&start,0);
-		#endif
-		
-		#ifdef MY_MSVC
-		time_t start;
-		time(&start);
-		#endif
+		MyTimer alphabeta_t;
 
 		#ifdef SEARCH_MULTI
 		alphabeta_depth--;
@@ -1107,32 +1093,22 @@ namespace AnalyzerSpace
 			return INFINITE_SCORE;
 		}
 		
-		#ifdef MY_GNU
-		gettimeofday(&stop,0);
+		alphabeta_t.stop_timer();
 		
-		long elapsed=TIMEUS(stop)-TIMEUS(start);
-		elapsed/=1000;
-		#endif
+		double elapsed=alphabeta_t.elapsed_time();
 		
-		#ifdef MY_MSVC
-		time_t stop;
-		time(&stop);
-		
-		long elapsed=((long)stop-(long)start)*1000;
-		#endif
-		
-		float nps;
+		double nps;
 		
 		if(elapsed>0)
 		{
-			nps=(float)nodes/(float)elapsed;
+			nps=(double)nodes/elapsed;
 		}
 		else
 		{
 			nps=0.0;
 		}
 		
-		elapsed/=1000;
+		elapsed/=1000.0;
 		
 		if(search_grad_verbose)
 		{
@@ -1143,12 +1119,12 @@ namespace AnalyzerSpace
 			
 			#else
 			
-			printf("%2d  %-5s %4d  time %4d  nodes %9d  nps  %4.1f",(int)alphabeta_depth,best_move_multi.algeb(),score,elapsed,nodes,nps);
+			printf("%2d  %-5s %4d  time %4d  nodes %9d  nps  %4.1f",(int)alphabeta_depth,best_move_multi.algeb(),score,(int)elapsed,nodes,nps);
 			
 			cout << endl;
 			
 			#endif
-				
+
 		}
 		
 		return score;
