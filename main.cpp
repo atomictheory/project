@@ -300,6 +300,7 @@ int main(int argc,char** argv)
 		
 			p.print_board();
 			
+			cout << endl << "fen: " << p.report_fen() << endl;
 			cout << endl << "line: " << g.line() << endl;
 			
 			//if(list_move_values)
@@ -535,6 +536,7 @@ int main(int argc,char** argv)
 		{
 			g.set_from_pgn();
 			p=g.current->p;
+			g.list_fens();
 			message="game set from pgn";
 			continue;
 		}

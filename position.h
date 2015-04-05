@@ -288,6 +288,8 @@ namespace PositionSpace
 		int count_endgame_corr_for_color(Color);
 		short int abs_mat;
 		
+		const char* report_fen();
+		
 	};
 	
 	///////////////////////////////////////////////////
@@ -328,6 +330,7 @@ namespace PositionSpace
 		}
 		void add_san_move(const char*);
 		void set_from_pgn();
+		void list_fens();
 		Game()
 		{
 			Position p;

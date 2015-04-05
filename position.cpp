@@ -582,7 +582,7 @@ namespace PositionSpace
 	void Position::make_move(Move m)
 	{
 		make_move_raw(m);
-		if(turn==BLACK)
+		if(turn==WHITE)
 		{
 			fullmove_number++;
 		}
@@ -1803,7 +1803,7 @@ namespace PositionSpace
 		
 		if(type & EP_CAPTURE_MOVE)
 		{
-			strcpy(to_san_ptr," e.p.");
+			//strcpy(to_san_ptr," e.p.");
 		}
 		
 		if(type & PROMOTION_MOVE)
@@ -1830,8 +1830,11 @@ namespace PositionSpace
 		{
 			if(dummy.is_in_check(dummy.turn))
 			{
-				*to_san_ptr++='#';
-				*to_san_ptr=0;
+				if(!dummy.is_exploded(dummy.turn))
+				{
+					*to_san_ptr++='#';
+					*to_san_ptr=0;
+				}
 			}
 			else
 			{
@@ -1956,7 +1959,17 @@ namespace PositionSpace
 		Position p=current->p;
 		if(p.is_san_move_legal(san))
 		{
+		
+			cout << "adding move: "
+			<< p.fullmove_number
+			<< (p.turn==WHITE?". ":". ... ")
+			<< p.to_san(p.try_move) 
+			<< " ( "
+			<< p.try_move.algeb()
+			<< " ) "
+			<< endl;
 			p.make_move(p.try_move);
+			cout << "resulting fen: " << p.report_fen() << endl;
 			add_position(p);
 		}
 	}
@@ -1997,6 +2010,8 @@ namespace PositionSpace
 							
 							init(p);
 							
+							cout << "initial fen: " << p.report_fen() << endl;
+							
 							pos_init=true;
 						}
 					}
@@ -2011,13 +2026,15 @@ namespace PositionSpace
 							
 							init(p);
 							
+							cout << "initial fen (starting position): " << p.report_fen() << endl;
+							
 							pos_init=true;
 						}
 						
 						istringstream ins;
 						ins.str(pgn_puff);
 						
-						cout << pgn_puff << endl;
+						cout << "pgn moves: " << pgn_puff << endl;
 						
 						while(!ins.eof())
 						{
@@ -2034,6 +2051,80 @@ namespace PositionSpace
 			i.close();
 		}
 
+	}
+	
+	char report_fen_puff[200];
+	const char* Position::report_fen()
+	{
+		char* report_fen_ptr=report_fen_puff;
+		for(int i=0;i<8;i++)
+		{
+			int empty_count=0;
+			for(int j=0;j<8;j++)
+			{
+				Piece piece=board[i*BOARD_WIDTH+j];
+				if(!piece)
+				{
+					empty_count++;
+				}
+				else
+				{
+					if(empty_count)
+					{
+						*report_fen_ptr++='0'+(char)empty_count;
+						empty_count=0;
+					}
+					*report_fen_ptr++=piece_letters[piece];
+				}
+			}
+			if(empty_count)
+			{
+				*report_fen_ptr++='0'+(char)empty_count;
+			}
+			if(i<7)
+			{
+				*report_fen_ptr++='/';
+			}
+		}
+		
+		*report_fen_ptr=0;
+		
+		ostringstream oss;
+		
+		oss << " " << (turn==WHITE?"w":"b") << " ";
+		
+		if(castling_rights)
+		{
+			if(castling_rights&CASTLING_RIGHT_K){oss << "K";}
+			if(castling_rights&CASTLING_RIGHT_Q){oss << "Q";}
+			if(castling_rights&CASTLING_RIGHT_k){oss << "k";}
+			if(castling_rights&CASTLING_RIGHT_q){oss << "q";}
+		}
+		else
+		{
+			oss << "-";
+		}
+		
+		oss << " " << square_to_algeb(ep_square) << " " << halfmove_clock << " " << fullmove_number;
+		
+		strcat(report_fen_puff,oss.str().c_str());
+		
+		return report_fen_puff;
+	}
+	
+	void Game::list_fens()
+	{
+		ofstream o("fens.txt");
+		if(o.is_open())
+		{
+			GameItem* pos=game;
+			while(pos!=NULL)
+			{
+				o << pos->p.report_fen() << endl;
+				pos=pos->next;
+			}
+			o.close();
+		}
 	}
 
 }
