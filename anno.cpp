@@ -265,7 +265,13 @@ void list_annotated_moves(Position* p)
 				if(i==0){cout << endl;}
 			
 				cout << " * ( " << (i+1) << " ) " 
-				<< annotated_moves[i].id.algeb << " " 
+				<<
+				#ifdef USE_SAN_NOTATION
+				dummy.to_san(annotated_moves[i].m)
+				#else
+				annotated_moves[i].id.algeb
+				#endif
+				<< " " 
 				<< annotated_moves[i].annot 
 				/*<< " ( " 
 				<< annot_nice(annotated_moves[i].annot) 

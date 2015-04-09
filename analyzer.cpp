@@ -738,7 +738,11 @@ namespace AnalyzerSpace
 		}
 		
 		Move m=move_buffer[entry->moves].m;
+		#ifdef USE_SAN_NOTATION
+		strcat(calc_pv_buffer,p.to_san(m));
+		#else
 		strcat(calc_pv_buffer,m.algeb());
+		#endif
 		strcat(calc_pv_buffer," ");
 		
 		Position dummy=p;
@@ -782,7 +786,13 @@ namespace AnalyzerSpace
 				Score original_search_score=move_buffer[move_ptr].original_search_score;
 				Score eval=move_buffer[move_ptr].eval;
 				
-				printf("%5s %5d ( %5d ) ",m.algeb(),eval,original_search_score);
+				printf("%5s %5d ( %5d ) ",
+					#ifdef USE_SAN_NOTATION
+					p.to_san(m)
+					#else
+					m.algeb()
+					#endif
+					,eval,original_search_score);
 				
 				Position dummy=p;
 				dummy.make_move(m);
