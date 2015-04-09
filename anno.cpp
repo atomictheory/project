@@ -284,7 +284,12 @@ void list_annotated_moves(Position* p)
 		if((is_recommended_move)&&(anno_verbose))
 		{
 			cout << endl << " recommended move: "
-			<< recommended_move.algeb() << endl;
+			#ifdef USE_SAN_NOTATION
+			<< dummy.to_san(recommended_move)
+			#else
+			<< recommended_move.algeb() 
+			#endif
+			<< endl;
 		}
 	
 	}
