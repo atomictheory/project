@@ -1002,7 +1002,15 @@ namespace PositionSpace
 			Square to_sq;
 			
 			to_sq=move_table[current_ptr].to_sq;
+			
 			num_attackers+=attackers_on_square_of_color(to_sq,OPPOSITE_COLOR(color),COUNT_ALL);
+			
+			// bonus for enemy pieces around the king
+			Piece piece_around_king=board[to_sq];
+			if(piece_around_king&&(COLOR_OF(piece_around_king)==OPPOSITE_COLOR(color)))
+			{
+				num_attackers+=5;
+			}
 			
 			current_ptr++;
 		}
