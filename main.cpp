@@ -514,15 +514,22 @@ int main(int argc,char** argv)
 				print_prompt=false;
 				do_search=true;
 			}
-			#ifdef MY_MSVC
-			OpenClipboard(NULL);
-			char fen[200];
-			strncpy_s(fen, (char*)GetClipboardData(CF_TEXT),200);
-			CloseClipboard();
-			p.set_from_fen(fen);
-			#else
-			p.set_from_fen(buf+1);
-			#endif
+			if(buf[1]=='f')
+			{
+				p.set_from_fen(buf+2);
+			}
+			else
+			{
+				#ifdef MY_MSVC
+				OpenClipboard(NULL);
+				char fen[200];
+				strncpy_s(fen, (char*)GetClipboardData(CF_TEXT),200);
+				CloseClipboard();
+				p.set_from_fen(fen);
+				#else
+				p.set_from_fen(buf+1);
+				#endif
+			}
 			g.init(p);
 			if(do_search)
 			{
