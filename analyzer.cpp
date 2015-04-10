@@ -758,6 +758,22 @@ namespace AnalyzerSpace
 		return calc_pv_recursive(0,p);
 	}
 	
+	void value_nice(int value,char* puff)
+	{
+		if(abs(value)>abs(CUTOFF))
+		{
+			*puff++=value>0?'+':'-';
+			
+			strcpy(puff,"mate");
+			return;
+		}
+		
+		std::ostringstream oss;
+		oss << value;
+		
+		strcpy(puff,oss.str().c_str());
+	}
+	
 	void Analyzer::list_move_values(Position p)
 	{
 		DeepHashValue* entry=smart_look_up(p);
@@ -776,6 +792,8 @@ namespace AnalyzerSpace
 		
 		entry->sort_moves();
 		
+		char nice_eval_puff[50];
+		char nice_orig_puff[50];
 		for(int i=0;i<entry->no_moves;i++)
 		{
 			MyHashPtr move_ptr=entry->moves+i;
@@ -786,13 +804,19 @@ namespace AnalyzerSpace
 				Score original_search_score=move_buffer[move_ptr].original_search_score;
 				Score eval=move_buffer[move_ptr].eval;
 				
-				printf("%5s %5d ( %5d ) ",
+				value_nice(eval,nice_eval_puff);
+				value_nice(original_search_score,nice_orig_puff);
+				printf("%5s %5s ( %5s ) ",
 					#ifdef USE_SAN_NOTATION
 					p.to_san(m)
 					#else
 					m.algeb()
 					#endif
-					,eval,original_search_score);
+					,
+					nice_eval_puff
+					,
+					nice_orig_puff
+					);
 				
 				Position dummy=p;
 				dummy.make_move(m);
