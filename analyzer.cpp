@@ -737,7 +737,16 @@ namespace AnalyzerSpace
 			return calc_pv_buffer;
 		}
 		
-		Move m=move_buffer[entry->moves].m;
+		DeepHashMove dm=move_buffer[entry->moves];
+		
+		if(dm.eval==0)
+		{
+			// avoid repetition
+			return calc_pv_buffer;
+		}
+		
+		Move m=dm.m;
+		
 		#ifdef USE_SAN_NOTATION
 		strcat(calc_pv_buffer,p.to_san(m));
 		#else
@@ -806,7 +815,11 @@ namespace AnalyzerSpace
 				
 				value_nice(eval,nice_eval_puff);
 				value_nice(original_search_score,nice_orig_puff);
-				printf("%5s %5s ( %5s ) ",
+				#ifdef SHOW_ORIGINAL_SEARCH_VALUES
+				printf(" %-8s %6s  ( %6s )    ",
+				#else
+				printf(" %-8s %6s    ",
+				#endif
 					#ifdef USE_SAN_NOTATION
 					p.to_san(m)
 					#else
@@ -814,8 +827,10 @@ namespace AnalyzerSpace
 					#endif
 					,
 					nice_eval_puff
+					#ifdef SHOW_ORIGINAL_SEARCH_VALUES
 					,
 					nice_orig_puff
+					#endif
 					);
 				
 				Position dummy=p;
@@ -1153,7 +1168,13 @@ namespace AnalyzerSpace
 			
 			#else
 			
-			printf("%2d  %-5s %4d  time %4d  nodes %9d  nps  %4.1f",(int)alphabeta_depth,best_move_multi.algeb(),score,(int)elapsed,nodes,nps);
+			printf("%2d  %-8s %6d  time %4d  nodes %9d  nps  %4.1f",(int)alphabeta_depth,
+			#ifdef USE_SAN_NOTATION
+			alphabeta_position.to_san(best_move_multi)
+			#else
+			best_move_multi.algeb()
+			#endif
+			,score,(int)elapsed,nodes,nps);
 			
 			cout << endl;
 			
